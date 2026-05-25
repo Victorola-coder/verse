@@ -74,6 +74,23 @@ export async function getPublishedQuotes(options: {
   return rows.map((row) => serializeQuote(row, likedIds.has(row.id)));
 }
 
+export async function getQuoteById(id: string, sessionId?: string | null) {
+  const row = await prisma.quote.findUnique({ where: { id } });
+  if (!row) {
+    return null;
+  }
+
+  let likedByMe = false;
+  if (sessionId) {
+    const like = await prisma.quoteLike.findUnique({
+      where: { quoteId_sessionId: { quoteId: id, sessionId } },
+    });
+    likedByMe = !!like;
+  }
+
+  return serializeQuote(row, likedByMe);
+}
+
 export async function createPublishedQuote(data: {
   text: string;
   author: string;
