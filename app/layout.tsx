@@ -1,6 +1,7 @@
 import "./global.css";
-import { Cormorant_Garamond, Inter } from "next/font/google";
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@vercel/analytics/next"
+import { Cormorant_Garamond, Inter } from "next/font/google";
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
@@ -20,14 +21,46 @@ export const viewport: Viewport = {
   colorScheme: "dark",
 };
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verse.app";
+
 export const metadata: Metadata = {
-  title: "Verse — Quotes as art",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Verse — Words that move you, made beautiful",
+    template: "%s · Verse",
+  },
   description:
     "A minimalist, cinematic space to create, share, and export beautiful quotes.",
+  applicationName: "Verse",
+  keywords: [
+    "quotes",
+    "quote maker",
+    "share quotes",
+    "quote images",
+    "inspiration",
+    "literature",
+  ],
+  authors: [{ name: "VickyJay", url: "https://victorola.dev" }],
+  creator: "VickyJay",
   openGraph: {
-    title: "Verse",
-    description: "A digital mood and quote experience.",
+    title: "Verse — Words that move you, made beautiful",
+    description:
+      "Create, share, and export beautiful quotes. A digital mood and quote experience.",
+    url: siteUrl,
+    siteName: "Verse",
     type: "website",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Verse — Words that move you, made beautiful",
+    description:
+      "Create, share, and export beautiful quotes. A digital mood and quote experience.",
+    creator: "@vickyjay",
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 
@@ -40,6 +73,7 @@ export default function RootLayout({
     <html lang="en" className={`${cormorant.variable} ${inter.variable}`}>
       <body className="font-sans antialiased bg-verse-bg text-verse-text">
         {children}
+        <Analytics />
       </body>
     </html>
   );
