@@ -1,6 +1,7 @@
 "use client";
 
 import { Heart } from "lucide-react";
+import { toast } from "sonner";
 import ExportButton from "@/components/ExportButton";
 import { useToggleLikeMutation } from "@/lib/hooks/use-quotes";
 import type { Quote } from "@/types/quote";
@@ -31,7 +32,7 @@ export default function QuoteCard({
     try {
       await toggleLike.mutateAsync(quote.id);
     } catch {
-      // mutation rolls back optimistically
+      toast.error("Could not save your like");
     }
   };
 

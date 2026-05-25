@@ -1,6 +1,7 @@
 "use client";
 
 import { api } from "@/lib/api";
+import { getSessionId } from "@/lib/session";
 import { QUERY_KEYS, STALE_TIME } from "@/lib/constants";
 import type { QuoteDraft, SavedQuoteDraft } from "@/types/quote";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -107,13 +108,27 @@ export async function uploadQuoteImage(file: File): Promise<string> {
   const formData = new FormData();
   formData.append("file", file);
 
-  const { data } = await api.post<{ url: string }>(
-    "/api/upload/quote-image",
-    formData,
-    {
-      headers: { "Content-Type": "multipart/form-data" },
-    }
-  );
+  const response = await fetch("/api/upload/quote-image", {
+    method: "POST",
+    body: formData,
+    headers: {
+      "X-Session-Id": getSessionId(),
+    },
+  });
 
-  return data.url;
+  const payload = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const message =
+      (payload && typeof payload === "object" && "error" in payload
+        ? String(payload.error)
+        : null) ?? `Upload failed (${response.status})`;
+    throw new Error(message);
+  }
+
+  if (!payload?.url) {
+    throw new Error("Upload succeeded but no URL was returned");
+  }
+
+  return payload.url as string;
 }

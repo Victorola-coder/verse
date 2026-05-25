@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
+import { toast } from "sonner";
 import QuoteCanvas from "@/components/QuoteCanvas";
 import ExportButton from "@/components/ExportButton";
 import { CATEGORY_LABELS } from "@/lib/quotes-data";
@@ -39,7 +40,6 @@ export default function CreateQuoteModal() {
   const { isCreateOpen, closeCreate, activeDraftId, setActiveDraftId } =
     useVerseStore();
   const [draft, setDraft] = useState<QuoteDraft>(DEFAULT_QUOTE_DRAFT);
-  const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -76,46 +76,52 @@ export default function CreateQuoteModal() {
       }
 
       setIsUploading(true);
+      const toastId = toast.loading("Uploading image…");
       try {
         const url = await uploadQuoteImage(file);
         updateDraft("backgroundImage", url);
-      } catch {
-        setSaveStatus("Upload failed");
-        setTimeout(() => setSaveStatus(null), 2000);
+        toast.success("Image uploaded", { id: toastId });
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Upload failed";
+        toast.error(message, { id: toastId });
       } finally {
         setIsUploading(false);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
       }
     },
     [updateDraft]
   );
 
   const handleSaveDraft = useCallback(async () => {
-    setSaveStatus(null);
+    const toastId = toast.loading("Saving draft…");
     try {
       const saved = await saveDraftMutation.mutateAsync(draft);
       setDraft(draftToForm(saved));
       setActiveDraftId(saved.id);
-      setSaveStatus("Draft saved");
-      setTimeout(() => setSaveStatus(null), 2000);
+      toast.success("Draft saved", { id: toastId });
     } catch {
-      setSaveStatus("Save failed");
-      setTimeout(() => setSaveStatus(null), 2000);
+      toast.error("Could not save draft", { id: toastId });
     }
   }, [draft, saveDraftMutation, setActiveDraftId]);
 
   const handlePublish = useCallback(async () => {
     if (!draft.text.trim()) {
+      toast.error("Quote text is required");
       return;
     }
 
+    const toastId = toast.loading("Publishing…");
     try {
       await createQuoteMutation.mutateAsync(draft);
+      toast.success("Quote published", { id: toastId });
       setDraft(DEFAULT_QUOTE_DRAFT);
       setActiveDraftId(null);
       closeCreate();
     } catch {
-      setSaveStatus("Publish failed");
-      setTimeout(() => setSaveStatus(null), 2000);
+      toast.error("Could not publish quote", { id: toastId });
     }
   }, [draft, createQuoteMutation, closeCreate, setActiveDraftId]);
 
@@ -140,9 +146,9 @@ export default function CreateQuoteModal() {
           setDraft(DEFAULT_QUOTE_DRAFT);
           setActiveDraftId(null);
         }
+        toast.success("Draft deleted");
       } catch {
-        setSaveStatus("Delete failed");
-        setTimeout(() => setSaveStatus(null), 2000);
+        toast.error("Could not delete draft");
       }
     },
     [deleteDraftMutation, activeDraftId, setActiveDraftId]
@@ -426,10 +432,6 @@ export default function CreateQuoteModal() {
               </div>
             </div>
 
-            {saveStatus && (
-              <p className="font-sans text-xs text-verse-accent">{saveStatus}</p>
-            )}
-
             <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-2">
               <button
                 type="button"
@@ -472,7 +474,7 @@ export default function CreateQuoteModal() {
             </div>
           </div>
 
-          <div className="p-3 sm:p-6 bg-verse-bg/50">
+          <div className="p-3 sm:p-6 bg-verse-bg/50 lg:sticky lg:top-0 lg:self-start lg:max-h-[calc(92vh-4rem)] lg:overflow-y-auto">
             <p className="font-sans text-[10px] sm:text-xs text-verse-muted tracking-widest uppercase mb-2 sm:mb-4 text-center">
               Live Preview
             </p>

@@ -1,0 +1,74 @@
+# Verse — Roadmap
+
+Tracked feature ideas for later. Items move here once we agree the direction
+but haven't started building. When you start one, copy it into a real issue or
+PR description.
+
+## Deferred — pick up after current batch ships
+
+### AI assistance in the editor
+- Inline buttons in CreateQuoteModal: "Polish wording", "Suggest author",
+  "Generate from mood".
+- One shared `/api/ai/quote` route that takes `{ action, payload }` and routes
+  to Claude Haiku for cheap, fast responses.
+- Stream the response into the textarea so it feels live.
+- Rate-limit per session.
+
+### Format presets (Square, Portrait, Landscape, Pinterest)
+- Make `QuoteCanvas` accept an aspect/preset prop instead of hardcoded 4:5.
+- Presets:
+  - `square`        1080 x 1080  (IG post)
+  - `portrait`      1080 x 1350  (current default, IG / TikTok feed)
+  - `story`         1080 x 1920  (IG / TikTok story)
+  - `landscape`     1200 x 675   (Twitter / LinkedIn)
+  - `pinterest`     1000 x 1500  (2:3)
+- Persist preset on draft + quote rows.
+- ExportButton exposes a preset switcher before download.
+
+### Unsplash / Pexels background picker
+- New "Search backgrounds" tab next to "Upload" in CreateQuoteModal.
+- Server-side proxy to Unsplash API (keep key out of bundle).
+- Grid of 12 thumbnails per page, infinite scroll.
+- On select, store the full URL (Unsplash CDN is fine to hotlink with attribution).
+- Required: show photographer credit on the canvas (small text) and in the
+  share caption per Unsplash ToS.
+
+### Remix / fork a quote
+- "Remix" button on each QuoteCard footer.
+- Opens CreateQuoteModal pre-filled with that quote's theme / alignment /
+  background / authorCasing / showQuoteMarks — but blank text.
+- Add `remixedFrom` column on `Quote` (nullable FK to parent quote id).
+- Display "Remix of [original author]" badge on remixed quotes.
+
+### Collections / boards
+- Schema: `Collection { id, name, description, sessionId, isPublic, slug, createdAt }`
+  + `CollectionQuote { collectionId, quoteId, order }`.
+- "Save to collection" action on each quote.
+- `/c/[slug]` public collection page.
+- Profile view shows your public collections.
+- Requires auth (or at least a stable session) to be useful long-term.
+
+### Mood-based discovery
+- Replace the rigid categories chip row with a "How are you feeling?" mood
+  selector at the top of the feed.
+- Moods: lost, hopeful, restless, grateful, defiant, in love, heartbroken,
+  ambitious, tired, curious.
+- Map each existing `QuoteCategory` to one or more moods (data migration), and
+  let new quotes pick moods directly (multi-select).
+- Mood pick stored in localStorage so the feed remembers.
+
+## Backlog — quality / infra
+
+### Moderation
+- Profanity filter on publish (`bad-words` or similar).
+- "Report" button on each quote -> `Report { id, quoteId, sessionId, reason, status }`.
+- Reported quotes get `hidden = true` until reviewed.
+- Simple `/admin` page gated by an env-var token to triage reports.
+
+## Long-tail
+
+### Random quote public API
+- `GET /api/random` returning `{ id, text, author, category, url }`.
+- Public, cacheable for 60s.
+- Add docs page at `/api` so people can find it -> backlinks -> SEO.
+- Optional: `?category=love` filter.

@@ -9,9 +9,22 @@ export default function Footer() {
           </p>
         </div>
 
-        <p className="font-sans text-xs text-verse-muted tracking-wider uppercase">
-          © {new Date().getFullYear()} Verse
-        </p>
+        <div className="flex flex-col items-center md:items-end gap-2">
+          <p className="font-sans text-xs text-verse-muted tracking-wider uppercase">
+            © {new Date().getFullYear()} Verse
+          </p>
+          <p className="font-sans text-xs text-verse-muted">
+            Built out of boredom by{" "}
+            <a
+              href="https://victorola.dev"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-verse-accent hover:underline underline-offset-4 transition-colors"
+            >
+              VickyJay
+            </a>
+          </p>
+        </div>
       </div>
     </footer>
   );

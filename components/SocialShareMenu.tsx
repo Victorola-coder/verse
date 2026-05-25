@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Copy,
   Facebook,
@@ -11,6 +12,7 @@ import {
   Twitter,
   X,
 } from "lucide-react";
+import { toast } from "sonner";
 import QuoteCanvas, { type QuoteCanvasProps } from "@/components/QuoteCanvas";
 import {
   downloadBlob,
@@ -51,7 +53,6 @@ export default function SocialShareMenu({
   const canvasRef = useRef<HTMLDivElement>(null);
   const [imageBlob, setImageBlob] = useState<Blob | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [status, setStatus] = useState<string | null>(null);
 
   const caption = buildShareCaption(canvasProps);
   const links = getSocialShareLinks(caption);
@@ -59,23 +60,29 @@ export default function SocialShareMenu({
   useEffect(() => {
     if (!isOpen) {
       setImageBlob(null);
-      setStatus(null);
       return;
     }
+
+    let cancelled = false;
 
     const generate = async () => {
       if (!canvasRef.current) {
         return;
       }
-
       setIsGenerating(true);
       try {
         const blob = await generateQuoteImage(canvasRef.current);
-        setImageBlob(blob);
+        if (!cancelled) {
+          setImageBlob(blob);
+        }
       } catch {
-        setStatus("Could not prepare image");
+        if (!cancelled) {
+          toast.error("Could not prepare image");
+        }
       } finally {
-        setIsGenerating(false);
+        if (!cancelled) {
+          setIsGenerating(false);
+        }
       }
     };
 
@@ -83,7 +90,10 @@ export default function SocialShareMenu({
       void generate();
     }, 100);
 
-    return () => clearTimeout(timer);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [isOpen, canvasProps]);
 
   const handleAction = useCallback(
@@ -91,17 +101,19 @@ export default function SocialShareMenu({
       try {
         if (link.action === "copy") {
           await navigator.clipboard.writeText(caption);
-          setStatus("Caption copied");
+          toast.success("Caption copied to clipboard");
         } else if (link.action === "download") {
           if (!imageBlob) {
-            setStatus("Image not ready yet");
+            toast.message("Hang on — image is still loading");
             return;
           }
           downloadBlob(imageBlob, `verse-${Date.now()}.png`);
-          setStatus("Image saved — open Instagram or TikTok to post");
+          toast.success("Image saved", {
+            description: "Open Instagram or TikTok to post it",
+          });
         } else if (link.action === "native") {
           if (!imageBlob) {
-            setStatus("Image not ready yet");
+            toast.message("Hang on — image is still loading");
             return;
           }
           const result = await shareQuoteImage(
@@ -109,24 +121,20 @@ export default function SocialShareMenu({
             `verse-${Date.now()}.png`
           );
           if (result === "shared") {
-            setStatus("Shared");
-          } else if (result === "cancelled") {
-            setStatus(null);
-          } else {
+            toast.success("Shared");
+          } else if (result === "unsupported") {
             downloadBlob(imageBlob, `verse-${Date.now()}.png`);
-            setStatus("Downloaded — share image manually");
+            toast.success("Downloaded — share image manually");
           }
         }
-        setTimeout(() => setStatus(null), 2800);
       } catch {
-        setStatus("Something went wrong");
-        setTimeout(() => setStatus(null), 2500);
+        toast.error("Something went wrong");
       }
     },
     [caption, imageBlob]
   );
 
-  if (!isOpen) {
+  if (!isOpen || typeof document === "undefined") {
     return null;
   }
 
@@ -137,37 +145,47 @@ export default function SocialShareMenu({
     "disabled:opacity-40 disabled:pointer-events-none"
   );
 
-  return (
-    <div
-      className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center p-0 sm:p-6"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="share-quote-title"
-    >
-      <button
-        type="button"
-        aria-label="Close"
-        onClick={onClose}
-        className="absolute inset-0 bg-black/75 backdrop-blur-sm"
-      />
+  return createPortal(
+    <>
+      <div
+        aria-hidden
+        className="pointer-events-none"
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: 1080,
+          height: 1350,
+          opacity: 0,
+          zIndex: -1,
+          transform: "translate(-200vw, -200vh)",
+        }}
+      >
+        <QuoteCanvas ref={canvasRef} {...canvasProps} exportMode />
+      </div>
 
       <div
-        className={cn(
-          "relative z-10 w-full max-w-md max-h-[90vh] overflow-y-auto",
-          "bg-verse-card verse-border rounded-t-2xl sm:rounded-2xl",
-          "p-4 sm:p-6 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pb-6",
-          "animate-[slideUp_0.35s_ease-out_forwards]"
-        )}
+        className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center p-0 sm:p-6"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="share-quote-title"
       >
-        <div
-          aria-hidden
-          className="fixed left-0 top-0 overflow-hidden pointer-events-none"
-          style={{ width: 1080, height: 1350, opacity: 0, zIndex: -1 }}
-        >
-          <QuoteCanvas ref={canvasRef} {...canvasProps} exportMode />
-        </div>
+        <button
+          type="button"
+          aria-label="Close"
+          onClick={onClose}
+          className="absolute inset-0 bg-black/75 backdrop-blur-sm"
+        />
 
-        <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <div
+          className={cn(
+            "relative z-10 w-full max-w-md",
+            "bg-verse-card verse-border rounded-t-2xl sm:rounded-2xl",
+            "p-4 sm:p-5 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pb-5",
+            "animate-[slideUp_0.35s_ease-out_forwards]"
+          )}
+        >
+        <div className="flex items-center justify-between mb-3">
           <h2
             id="share-quote-title"
             className="font-serif text-lg sm:text-xl text-verse-text"
@@ -184,15 +202,11 @@ export default function SocialShareMenu({
           </button>
         </div>
 
-        <p className="font-sans text-[11px] sm:text-xs text-verse-muted mb-4 leading-relaxed">
+        <p className="font-sans text-[11px] sm:text-xs text-verse-muted mb-3 leading-relaxed">
           {isGenerating
             ? "Preparing your quote image…"
             : "Text platforms open with your caption. For Instagram or TikTok, download the image first."}
         </p>
-
-        {status && (
-          <p className="font-sans text-xs text-verse-accent mb-3">{status}</p>
-        )}
 
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-3">
           {links.map((link) => {
@@ -250,11 +264,9 @@ export default function SocialShareMenu({
           })}
         </div>
 
-        <p className="font-sans text-[10px] text-verse-muted/70 mt-4 leading-relaxed">
-          Tap Instagram / TikTok to download the image, then paste the caption
-          via Copy.
-        </p>
+        </div>
       </div>
-    </div>
+    </>,
+    document.body
   );
 }

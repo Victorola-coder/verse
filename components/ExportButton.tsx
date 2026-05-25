@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Download, Share2 } from "lucide-react";
+import { toast } from "sonner";
 import QuoteCanvas, { type QuoteCanvasProps } from "@/components/QuoteCanvas";
 import SocialShareMenu from "@/components/SocialShareMenu";
 import { exportAndDownloadQuote } from "@/utils/export-image";
@@ -20,56 +22,66 @@ export default function ExportButton({
   className,
   label = "Export",
 }: ExportButtonProps) {
+  void label;
   const canvasRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
-  const [status, setStatus] = useState<string | null>(null);
 
   const openShare = useCallback(() => {
     if (!canvasProps.text.trim()) {
-      setStatus("Add quote text first");
-      setTimeout(() => setStatus(null), 2000);
+      toast.error("Add quote text first");
       return;
     }
     setShareOpen(true);
   }, [canvasProps.text]);
 
   const handleDownload = useCallback(async () => {
-    if (!canvasRef.current || isExporting) {
+    if (isExporting) {
       return;
     }
 
     setIsExporting(true);
-    setStatus(null);
+    const toastId = toast.loading("Generating image…");
 
     try {
+      // Wait a tick so the hidden canvas mounts before we capture it
+      await new Promise((r) => setTimeout(r, 50));
+      if (!canvasRef.current) {
+        throw new Error("Canvas not ready");
+      }
       await exportAndDownloadQuote(canvasRef.current, {
         filename: `verse-${Date.now()}.png`,
       });
-      setStatus("Saved");
-      setTimeout(() => setStatus(null), 2000);
+      toast.success("Saved to your device", { id: toastId });
     } catch {
-      setStatus("Failed");
-      setTimeout(() => setStatus(null), 2500);
+      toast.error("Could not export image", { id: toastId });
     } finally {
       setIsExporting(false);
     }
   }, [isExporting]);
 
-  const exportCanvas = (
-    <div
-      aria-hidden
-      className="fixed left-0 top-0 overflow-hidden pointer-events-none"
-      style={{
-        width: 1080,
-        height: 1350,
-        opacity: 0,
-        zIndex: -1,
-      }}
-    >
-      <QuoteCanvas ref={canvasRef} {...canvasProps} exportMode />
-    </div>
-  );
+  const exportCanvas =
+    isExporting && typeof document !== "undefined"
+      ? createPortal(
+          <div
+            aria-hidden
+            className="overflow-hidden pointer-events-none"
+            style={{
+              position: "fixed",
+              width: 1080,
+              height: 1350,
+              top: 0,
+              left: 0,
+              opacity: 0,
+              zIndex: -1,
+              transform: "translate(-200vw, -200vh)",
+            }}
+          >
+            <QuoteCanvas ref={canvasRef} {...canvasProps} exportMode />
+          </div>,
+          document.body
+        )
+      : null;
 
   const shareMenu = (
     <SocialShareMenu
@@ -179,7 +191,7 @@ export default function ExportButton({
           ) : (
             <Download className="h-4 w-4" />
           )}
-          {status ?? "Download"}
+          {isExporting ? "Exporting…" : "Download"}
         </button>
       </div>
     </>
