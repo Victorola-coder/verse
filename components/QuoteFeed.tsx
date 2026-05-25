@@ -1,10 +1,19 @@
 "use client";
 
 import QuoteCard from "@/components/QuoteCard";
+import QuotesEmpty from "@/components/QuotesEmpty";
 import { useQuotesQuery } from "@/lib/hooks/use-quotes";
+import { useVerseStore } from "@/lib/store/verse";
+import { CATEGORY_LABELS } from "@/lib/quotes-data";
 
 export default function QuoteFeed() {
-  const { data: quotes = [], isLoading, isError } = useQuotesQuery();
+  const activeCategory = useVerseStore((s) => s.activeCategory);
+  const { data: quotes = [], isLoading, isError, refetch } = useQuotesQuery();
+
+  const categoryLabel =
+    activeCategory === "all"
+      ? "any mood"
+      : CATEGORY_LABELS[activeCategory]?.toLowerCase() ?? activeCategory;
 
   if (isLoading) {
     return (
@@ -21,17 +30,24 @@ export default function QuoteFeed() {
 
   if (isError) {
     return (
-      <p className="font-sans text-verse-muted text-center py-16">
-        Could not load quotes. Check your database connection.
-      </p>
+      <QuotesEmpty
+        title="Could not load quotes"
+        description="Check your database connection in .env.local, then run db:push and db:seed."
+        actionLabel="Retry"
+        onAction={() => void refetch()}
+        className="w-full"
+      />
     );
   }
 
   if (quotes.length === 0) {
     return (
-      <p className="font-sans text-verse-muted text-center py-16">
-        No quotes in this mood yet. Create one.
-      </p>
+      <QuotesEmpty
+        title="This space is quiet"
+        description={`No quotes for ${categoryLabel} yet. Write something worth remembering.`}
+        actionLabel="Create your first quote"
+        className="w-full"
+      />
     );
   }
 

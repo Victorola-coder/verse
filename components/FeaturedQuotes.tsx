@@ -1,10 +1,12 @@
 "use client";
 
 import QuoteCard from "@/components/QuoteCard";
+import QuotesEmpty from "@/components/QuotesEmpty";
 import { useFeaturedQuotesQuery } from "@/lib/hooks/use-quotes";
 
 export default function FeaturedQuotes() {
-  const { data: featuredQuotes = [], isLoading } = useFeaturedQuotesQuery();
+  const { data: featuredQuotes = [], isLoading, isError, refetch } =
+    useFeaturedQuotesQuery();
 
   return (
     <section className="px-4 sm:px-6 py-20 md:py-28">
@@ -27,6 +29,20 @@ export default function FeaturedQuotes() {
               />
             ))}
           </div>
+        ) : isError ? (
+          <QuotesEmpty
+            title="Could not load quotes"
+            description="Check your database connection and try refreshing the page."
+            actionLabel="Try again"
+            onAction={() => void refetch()}
+            className="min-h-[280px]"
+          />
+        ) : featuredQuotes.length === 0 ? (
+          <QuotesEmpty
+            title="No featured quotes yet"
+            description="Curated quotes will appear here once your feed is seeded or published."
+            className="min-h-[280px]"
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-stretch">
             {featuredQuotes.map((quote) => (

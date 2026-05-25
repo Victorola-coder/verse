@@ -1,5 +1,4 @@
 import "./global.css";
-import Providers from "@/app/providers";
 import { Cormorant_Garamond, Inter } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 
@@ -40,7 +39,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${cormorant.variable} ${inter.variable}`}>
       <body className="font-sans antialiased bg-verse-bg text-verse-text">
-        <Providers>{children}</Providers>
+        {children}
       </body>
     </html>
   );
