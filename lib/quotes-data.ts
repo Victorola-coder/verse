@@ -3,8 +3,8 @@ import type { Quote } from "@/types/quote";
 export const SEED_QUOTES: Quote[] = [
   {
     id: "hero-1",
-    text: "Music no need permission to enter your spirit.",
-    author: "Santa",
+    text: "music no need permission to enter your spirit.",
+    author: "Mohbad",
     category: "music",
     theme: "cinematic",
     alignment: "center",

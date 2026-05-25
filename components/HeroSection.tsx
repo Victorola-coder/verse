@@ -10,7 +10,7 @@ export default function HeroSection() {
   const { openCreate } = useQuotes();
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden px-4 sm:px-6 pt-20 pb-12">
       <div
         className="absolute inset-0 opacity-40"
         style={{
@@ -22,11 +22,11 @@ export default function HeroSection() {
 
       <div
         className={cn(
-          "relative z-10 max-w-4xl mx-auto px-6 text-center",
+          "relative z-10 max-w-4xl mx-auto text-center w-full",
           "animate-[fadeUp_1.2s_ease-out_forwards] opacity-0"
         )}
       >
-        <blockquote className="font-serif font-light text-verse-text leading-[1.35] text-4xl sm:text-5xl md:text-6xl lg:text-7xl tracking-tight">
+        <blockquote className="font-serif font-light text-verse-text leading-[1.35] text-[clamp(1.75rem,6vw,4.5rem)] tracking-tight">
           <span className="block text-verse-muted/50 text-5xl md:text-6xl mb-4 select-none">
             &ldquo;
           </span>

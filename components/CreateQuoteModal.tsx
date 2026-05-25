@@ -97,10 +97,10 @@ export default function CreateQuoteModal() {
           "animate-[slideUp_0.4s_ease-out_forwards]"
         )}
       >
-        <div className="sticky top-0 z-20 flex items-center justify-between px-6 py-4 bg-verse-card/95 backdrop-blur-md border-b border-verse">
+        <div className="sticky top-0 z-20 flex items-center justify-between px-4 sm:px-6 py-4 bg-verse-card/95 backdrop-blur-md border-b border-verse">
           <h2
             id="create-quote-title"
-            className="font-serif text-2xl text-verse-text"
+            className="font-serif text-xl sm:text-2xl text-verse-text"
           >
             Create Quote
           </h2>
@@ -114,7 +114,7 @@ export default function CreateQuoteModal() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 lg:gap-0">
-          <div className="p-6 space-y-6 border-b lg:border-b-0 lg:border-r border-verse">
+          <div className="p-4 sm:p-6 space-y-6 border-b lg:border-b-0 lg:border-r border-verse">
             <div>
               <label className="font-sans text-xs text-verse-muted tracking-widest uppercase mb-2 block">
                 Quote
@@ -279,7 +279,7 @@ export default function CreateQuoteModal() {
             </div>
           </div>
 
-          <div className="p-6 bg-verse-bg/50">
+          <div className="p-4 sm:p-6 bg-verse-bg/50 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
             <p className="font-sans text-xs text-verse-muted tracking-widest uppercase mb-4 text-center">
               Live Preview
             </p>

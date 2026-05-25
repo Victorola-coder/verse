@@ -34,12 +34,12 @@ export default function QuoteCard({ quote, compact = false }: QuoteCardProps) {
         &ldquo;{quote.text}&rdquo;
       </blockquote>
 
-      <footer className="mt-8 flex items-end justify-between gap-4">
-        <p className="font-sans text-xs text-verse-accent tracking-[0.2em] uppercase">
+      <footer className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <p className="font-sans text-xs text-verse-accent tracking-[0.2em] uppercase break-words">
           — {quote.author}
         </p>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <button
             type="button"
             onClick={() => toggleLike(quote.id)}
