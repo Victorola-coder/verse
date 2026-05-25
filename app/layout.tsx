@@ -70,11 +70,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+    <>
     <html lang="en" className={`${cormorant.variable} ${inter.variable}`}>
       <body className="font-sans antialiased bg-verse-bg text-verse-text">
         {children}
-        <Analytics />
       </body>
     </html>
+        <Analytics />
+    </>
   );
 }
