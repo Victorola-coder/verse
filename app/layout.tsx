@@ -21,8 +21,14 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Verse",
-  description: "A digital mood and quote experience.",
+  title: "Verse — Quotes as art",
+  description:
+    "A minimalist, cinematic space to create, share, and export beautiful quotes.",
+  openGraph: {
+    title: "Verse",
+    description: "A digital mood and quote experience.",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
@@ -32,7 +38,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${cormorant.variable} ${inter.variable}`}>
-      <body className="font-sans antialiased">{children}</body>
+      <body className="font-sans antialiased bg-verse-bg text-verse-text">
+        {children}
+      </body>
     </html>
   );
 }
