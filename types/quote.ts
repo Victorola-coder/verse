@@ -2,6 +2,12 @@ export type QuoteTheme = "dark" | "beige" | "cinematic" | "minimal";
 
 export type QuoteAlignment = "left" | "center" | "right";
 
+export type AuthorCasing =
+  | "as-typed"
+  | "uppercase"
+  | "lowercase"
+  | "capitalize";
+
 export type QuoteCategory =
   | "all"
   | "music"
@@ -18,6 +24,8 @@ export interface Quote {
   theme: QuoteTheme;
   alignment: QuoteAlignment;
   backgroundImage?: string;
+  showQuoteMarks: boolean;
+  authorCasing: AuthorCasing;
   featured?: boolean;
   likes: number;
   likedByMe?: boolean;
@@ -33,6 +41,8 @@ export interface SavedQuoteDraft {
   theme: QuoteTheme;
   alignment: QuoteAlignment;
   backgroundImage?: string | null;
+  showQuoteMarks: boolean;
+  authorCasing: AuthorCasing;
   createdAt: string;
   updatedAt: string;
 }
@@ -45,7 +55,16 @@ export interface QuoteDraft {
   alignment: QuoteAlignment;
   backgroundImage?: string;
   category: Exclude<QuoteCategory, "all">;
+  showQuoteMarks: boolean;
+  authorCasing: AuthorCasing;
 }
+
+export const AUTHOR_CASING_LABELS: Record<AuthorCasing, string> = {
+  "as-typed": "As typed",
+  uppercase: "UPPERCASE",
+  lowercase: "lowercase",
+  capitalize: "Capitalize",
+};
 
 export const DEFAULT_QUOTE_DRAFT: QuoteDraft = {
   text: "",
@@ -53,4 +72,6 @@ export const DEFAULT_QUOTE_DRAFT: QuoteDraft = {
   theme: "dark",
   alignment: "center",
   category: "life",
+  showQuoteMarks: true,
+  authorCasing: "as-typed",
 };

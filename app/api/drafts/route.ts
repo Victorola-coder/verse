@@ -1,36 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isNextResponse, requireSessionId } from "@/lib/api-utils";
+import { serializeDraft } from "@/lib/serialize-draft";
 import { createDraftSchema } from "@/lib/validations/quote";
 import {
   createDraftForSession,
   getDraftsForSession,
 } from "@/lib/services/quotes";
-
-function serializeDraft(row: {
-  id: string;
-  sessionId: string;
-  text: string;
-  author: string;
-  category: string;
-  theme: string;
-  alignment: string;
-  backgroundImage: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}) {
-  return {
-    id: row.id,
-    sessionId: row.sessionId,
-    text: row.text,
-    author: row.author,
-    category: row.category,
-    theme: row.theme,
-    alignment: row.alignment,
-    backgroundImage: row.backgroundImage,
-    createdAt: row.createdAt.toISOString(),
-    updatedAt: row.updatedAt.toISOString(),
-  };
-}
 
 export async function GET(req: NextRequest) {
   try {

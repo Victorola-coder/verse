@@ -65,6 +65,8 @@ export async function POST(req: NextRequest) {
       theme: data.theme,
       alignment: data.alignment,
       backgroundImage: data.backgroundImage,
+      showQuoteMarks: data.showQuoteMarks,
+      authorCasing: data.authorCasing,
     });
 
     await deleteDraftAfterPublish(draftId, sessionResult);

@@ -59,6 +59,7 @@ const QuoteCanvas = forwardRef<HTMLDivElement, QuoteCanvasProps>(
             <img
               src={backgroundImage}
               alt=""
+              crossOrigin="anonymous"
               className="absolute inset-0 w-full h-full object-cover"
             />
             <div

@@ -81,6 +81,7 @@ export default function QuoteCard({
           </button>
 
           <ExportButton
+            variant="both"
             canvasProps={{
               text: quote.text,
               author: quote.author,

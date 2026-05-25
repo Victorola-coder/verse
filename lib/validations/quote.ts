@@ -2,6 +2,7 @@ import { z } from "zod";
 
 const quoteTheme = z.enum(["dark", "beige", "cinematic", "minimal"]);
 const quoteAlignment = z.enum(["left", "center", "right"]);
+const authorCasing = z.enum(["as-typed", "uppercase", "lowercase", "capitalize"]);
 const quoteCategory = z.enum([
   "music",
   "love",
@@ -9,6 +10,11 @@ const quoteCategory = z.enum([
   "wisdom",
   "poetry",
 ]);
+
+const styleFields = {
+  showQuoteMarks: z.boolean().optional().default(true),
+  authorCasing: authorCasing.optional().default("as-typed"),
+};
 
 export const createQuoteSchema = z.object({
   text: z.string().min(1).max(2000),
@@ -18,6 +24,7 @@ export const createQuoteSchema = z.object({
   alignment: quoteAlignment,
   backgroundImage: z.string().max(2048).optional().nullable(),
   draftId: z.string().optional(),
+  ...styleFields,
 });
 
 export const updateDraftSchema = z.object({
@@ -27,6 +34,8 @@ export const updateDraftSchema = z.object({
   theme: quoteTheme.optional(),
   alignment: quoteAlignment.optional(),
   backgroundImage: z.string().max(2048).optional().nullable(),
+  showQuoteMarks: z.boolean().optional(),
+  authorCasing: authorCasing.optional(),
 });
 
 export const createDraftSchema = z.object({
@@ -36,6 +45,7 @@ export const createDraftSchema = z.object({
   theme: quoteTheme.optional().default("dark"),
   alignment: quoteAlignment.optional().default("center"),
   backgroundImage: z.string().max(2048).optional().nullable(),
+  ...styleFields,
 });
 
 export type CreateQuoteInput = z.infer<typeof createQuoteSchema>;

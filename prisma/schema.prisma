@@ -16,6 +16,8 @@ model Quote {
   theme           String
   alignment       String
   backgroundImage String?
+  showQuoteMarks  Boolean     @default(true)
+  authorCasing    String      @default("as-typed")
   featured        Boolean     @default(false)
   likesCount      Int         @default(0)
   createdAt       DateTime    @default(now())
@@ -49,6 +51,8 @@ model QuoteDraft {
   theme           String   @default("dark")
   alignment       String   @default("center")
   backgroundImage String?
+  showQuoteMarks  Boolean  @default(true)
+  authorCasing    String   @default("as-typed")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

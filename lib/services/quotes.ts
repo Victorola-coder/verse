@@ -1,6 +1,18 @@
 import type { Quote as PrismaQuote } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import type { Quote, QuoteCategory } from "@/types/quote";
+import type { AuthorCasing, Quote, QuoteCategory } from "@/types/quote";
+
+function parseAuthorCasing(value: string): AuthorCasing {
+  const allowed: AuthorCasing[] = [
+    "as-typed",
+    "uppercase",
+    "lowercase",
+    "capitalize",
+  ];
+  return allowed.includes(value as AuthorCasing)
+    ? (value as AuthorCasing)
+    : "as-typed";
+}
 
 export function serializeQuote(
   row: PrismaQuote,
@@ -14,6 +26,8 @@ export function serializeQuote(
     theme: row.theme as Quote["theme"],
     alignment: row.alignment as Quote["alignment"],
     backgroundImage: row.backgroundImage ?? undefined,
+    showQuoteMarks: row.showQuoteMarks,
+    authorCasing: parseAuthorCasing(row.authorCasing),
     featured: row.featured,
     likes: row.likesCount,
     createdAt: row.createdAt.toISOString(),
@@ -67,6 +81,8 @@ export async function createPublishedQuote(data: {
   theme: string;
   alignment: string;
   backgroundImage?: string | null;
+  showQuoteMarks?: boolean;
+  authorCasing?: string;
 }) {
   const row = await prisma.quote.create({
     data: {
@@ -76,6 +92,8 @@ export async function createPublishedQuote(data: {
       theme: data.theme,
       alignment: data.alignment,
       backgroundImage: data.backgroundImage ?? null,
+      showQuoteMarks: data.showQuoteMarks ?? true,
+      authorCasing: data.authorCasing ?? "as-typed",
     },
   });
   return serializeQuote(row);
@@ -134,6 +152,8 @@ export async function createDraftForSession(
     theme?: string;
     alignment?: string;
     backgroundImage?: string | null;
+    showQuoteMarks?: boolean;
+    authorCasing?: string;
   }
 ) {
   return prisma.quoteDraft.create({
@@ -145,6 +165,8 @@ export async function createDraftForSession(
       theme: data.theme ?? "dark",
       alignment: data.alignment ?? "center",
       backgroundImage: data.backgroundImage ?? null,
+      showQuoteMarks: data.showQuoteMarks ?? true,
+      authorCasing: data.authorCasing ?? "as-typed",
     },
   });
 }
@@ -159,6 +181,8 @@ export async function updateDraftForSession(
     theme?: string;
     alignment?: string;
     backgroundImage?: string | null;
+    showQuoteMarks?: boolean;
+    authorCasing?: string;
   }
 ) {
   const existing = await prisma.quoteDraft.findFirst({
@@ -178,6 +202,12 @@ export async function updateDraftForSession(
       ...(data.alignment !== undefined && { alignment: data.alignment }),
       ...(data.backgroundImage !== undefined && {
         backgroundImage: data.backgroundImage,
+      }),
+      ...(data.showQuoteMarks !== undefined && {
+        showQuoteMarks: data.showQuoteMarks,
+      }),
+      ...(data.authorCasing !== undefined && {
+        authorCasing: data.authorCasing,
       }),
     },
   });
