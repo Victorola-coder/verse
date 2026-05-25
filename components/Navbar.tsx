@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useVerseStore } from "@/lib/store/verse";
 import { cn } from "@/utils/cn";
 
@@ -15,20 +16,26 @@ export default function Navbar() {
           "pt-[max(1rem,env(safe-area-inset-top))]"
         )}
       >
-        <a
+        <Link
           href="/"
           className="font-serif text-xl sm:text-2xl text-verse-text tracking-wide shrink-0 transition-opacity duration-300 hover:opacity-70"
         >
           Verse
-        </a>
+        </Link>
 
         <div className="flex items-center gap-3 sm:gap-6">
           <a
-            href="#feed"
+            href="/#feed"
             className="hidden sm:inline font-sans text-sm text-verse-muted transition-colors duration-300 hover:text-verse-text"
           >
             Explore
           </a>
+          <Link
+            href="/saved"
+            className="font-sans text-xs sm:text-sm text-verse-muted transition-colors duration-300 hover:text-verse-text"
+          >
+            Saved
+          </Link>
           <button
             type="button"
             onClick={() => openCreate()}

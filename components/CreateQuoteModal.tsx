@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { toast } from "sonner";
+import confetti from "canvas-confetti";
 import QuoteCanvas from "@/components/QuoteCanvas";
 import ExportButton from "@/components/ExportButton";
 import { CATEGORY_LABELS } from "@/lib/quotes-data";
@@ -68,6 +69,60 @@ export default function CreateQuoteModal() {
     []
   );
 
+  const draftSignature = useMemo(
+    () =>
+      JSON.stringify({
+        text: draft.text,
+        author: draft.author,
+        category: draft.category,
+        theme: draft.theme,
+        alignment: draft.alignment,
+        backgroundImage: draft.backgroundImage ?? null,
+        showQuoteMarks: draft.showQuoteMarks,
+        authorCasing: draft.authorCasing,
+      }),
+    [draft]
+  );
+  const lastSavedSignatureRef = useRef<string>(draftSignature);
+
+  useEffect(() => {
+    lastSavedSignatureRef.current = draftSignature;
+  }, [activeDraftId]);
+
+  useEffect(() => {
+    if (!isCreateOpen) {
+      return;
+    }
+    if (draft.text.trim().length < 10) {
+      return;
+    }
+    if (draftSignature === lastSavedSignatureRef.current) {
+      return;
+    }
+
+    const handle = setTimeout(async () => {
+      try {
+        const saved = await saveDraftMutation.mutateAsync(draft);
+        lastSavedSignatureRef.current = draftSignature;
+        if (!activeDraftId) {
+          setActiveDraftId(saved.id);
+          setDraft((prev) => ({ ...prev, id: saved.id }));
+        }
+      } catch {
+        // silent — user can still hit the manual button
+      }
+    }, 1500);
+
+    return () => clearTimeout(handle);
+  }, [
+    draftSignature,
+    draft,
+    isCreateOpen,
+    saveDraftMutation,
+    activeDraftId,
+    setActiveDraftId,
+  ]);
+
   const handleImageUpload = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
@@ -107,6 +162,35 @@ export default function CreateQuoteModal() {
     }
   }, [draft, saveDraftMutation, setActiveDraftId]);
 
+  const fireConfetti = useCallback(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const reduced = window.matchMedia?.(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    if (reduced) {
+      return;
+    }
+    const defaults = {
+      spread: 70,
+      ticks: 90,
+      gravity: 0.9,
+      decay: 0.92,
+      startVelocity: 35,
+      colors: ["#D6B98C", "#F5F1EA", "#9D9D9D"],
+    };
+    confetti({ ...defaults, particleCount: 60, origin: { x: 0.2, y: 0.4 } });
+    confetti({ ...defaults, particleCount: 60, origin: { x: 0.8, y: 0.4 } });
+    setTimeout(() => {
+      confetti({
+        ...defaults,
+        particleCount: 80,
+        origin: { x: 0.5, y: 0.5 },
+      });
+    }, 180);
+  }, []);
+
   const handlePublish = useCallback(async () => {
     if (!draft.text.trim()) {
       toast.error("Quote text is required");
@@ -117,13 +201,14 @@ export default function CreateQuoteModal() {
     try {
       await createQuoteMutation.mutateAsync(draft);
       toast.success("Quote published", { id: toastId });
+      fireConfetti();
       setDraft(DEFAULT_QUOTE_DRAFT);
       setActiveDraftId(null);
       closeCreate();
     } catch {
       toast.error("Could not publish quote", { id: toastId });
     }
-  }, [draft, createQuoteMutation, closeCreate, setActiveDraftId]);
+  }, [draft, createQuoteMutation, closeCreate, setActiveDraftId, fireConfetti]);
 
   const handleClose = useCallback(() => {
     setDraft(DEFAULT_QUOTE_DRAFT);

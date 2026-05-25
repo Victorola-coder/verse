@@ -80,6 +80,8 @@ export default function OpengraphImage() {
 
         <div
           style={{
+            display: "flex",
+            flexDirection: "column",
             fontSize: 92,
             fontStyle: "italic",
             fontWeight: 300,
@@ -89,9 +91,8 @@ export default function OpengraphImage() {
             letterSpacing: -2,
           }}
         >
-          Words that move you,
-          <br />
-          made beautiful.
+          <span>Words that move you,</span>
+          <span>made beautiful.</span>
         </div>
 
         <div

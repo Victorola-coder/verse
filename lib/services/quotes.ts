@@ -185,6 +185,58 @@ export async function getBookmarkedQuotes(sessionId: string) {
   );
 }
 
+const VERSE_EPOCH = new Date("2025-01-01T00:00:00Z").getTime();
+
+export function getDayIndex(date: Date = new Date()): number {
+  const utcMidnight = Date.UTC(
+    date.getUTCFullYear(),
+    date.getUTCMonth(),
+    date.getUTCDate()
+  );
+  const dayMs = 24 * 60 * 60 * 1000;
+  return Math.max(0, Math.floor((utcMidnight - VERSE_EPOCH) / dayMs));
+}
+
+export async function getDailyQuote(sessionId?: string | null) {
+  const featuredRows = await prisma.quote.findMany({
+    where: { featured: true },
+    orderBy: { createdAt: "asc" },
+  });
+
+  const pool = featuredRows.length
+    ? featuredRows
+    : await prisma.quote.findMany({
+        orderBy: { createdAt: "asc" },
+      });
+
+  if (pool.length === 0) {
+    return null;
+  }
+
+  const dayIndex = getDayIndex();
+  const row = pool[dayIndex % pool.length];
+
+  let likedByMe = false;
+  let bookmarkedByMe = false;
+  if (sessionId) {
+    const [like, bookmark] = await Promise.all([
+      prisma.quoteLike.findUnique({
+        where: { quoteId_sessionId: { quoteId: row.id, sessionId } },
+      }),
+      prisma.quoteBookmark.findUnique({
+        where: { quoteId_sessionId: { quoteId: row.id, sessionId } },
+      }),
+    ]);
+    likedByMe = !!like;
+    bookmarkedByMe = !!bookmark;
+  }
+
+  return {
+    quote: serializeQuote(row, likedByMe, bookmarkedByMe),
+    dayIndex,
+  };
+}
+
 export async function createPublishedQuote(data: {
   text: string;
   author: string;

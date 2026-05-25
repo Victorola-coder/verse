@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Shuffle } from "lucide-react";
 import { useVerseStore } from "@/lib/store/verse";
 import {
+  useDailyQuoteQuery,
   useFeaturedQuotesQuery,
   useQuotesQuery,
 } from "@/lib/hooks/use-quotes";
@@ -18,6 +19,7 @@ const FALLBACK_HERO = {
 
 export default function HeroSection() {
   const openCreate = useVerseStore((s) => s.openCreate);
+  const { data: daily } = useDailyQuoteQuery();
   const { data: featured = [] } = useFeaturedQuotesQuery();
   const { data: allQuotes = [] } = useQuotesQuery("all");
   const [shuffleKey, setShuffleKey] = useState(0);
@@ -30,18 +32,21 @@ export default function HeroSection() {
   }, [featured, allQuotes]);
 
   const hero = useMemo(() => {
-    void shuffleKey;
+    if (shuffleKey === 0 && daily?.quote) {
+      return daily.quote;
+    }
     if (pool.length === 0) {
       return FALLBACK_HERO;
     }
     const idx = Math.floor(Math.random() * pool.length);
     return pool[idx];
-  }, [pool, shuffleKey]);
+  }, [pool, shuffleKey, daily]);
 
   const heroAuthor = formatAuthorAttribution(
     hero.author,
     hero.authorCasing
   );
+  const showDailyBadge = shuffleKey === 0 && !!daily?.quote;
 
   return (
     <section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden px-4 sm:px-6 pt-20 pb-12">
@@ -60,6 +65,12 @@ export default function HeroSection() {
           "animate-[fadeUp_1.2s_ease-out_forwards] opacity-0"
         )}
       >
+        {showDailyBadge && daily?.dayIndex != null && (
+          <p className="font-sans text-[10px] text-verse-accent tracking-[0.35em] uppercase mb-6">
+            · Day {daily.dayIndex + 1} ·
+          </p>
+        )}
+
         <blockquote
           key={hero.text}
           className="font-serif font-light text-verse-text leading-[1.35] text-[clamp(1.75rem,6vw,4.5rem)] tracking-tight animate-[fadeUp_0.6s_ease-out_forwards]"

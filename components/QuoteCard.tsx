@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Heart } from "lucide-react";
+import { Bookmark, Heart } from "lucide-react";
 import { toast } from "sonner";
 import ExportButton from "@/components/ExportButton";
-import { useToggleLikeMutation } from "@/lib/hooks/use-quotes";
+import {
+  useToggleBookmarkMutation,
+  useToggleLikeMutation,
+} from "@/lib/hooks/use-quotes";
 import type { Quote } from "@/types/quote";
 import {
   formatAuthorAttribution,
@@ -26,7 +29,9 @@ export default function QuoteCard({
   className,
 }: QuoteCardProps) {
   const toggleLike = useToggleLikeMutation();
+  const toggleBookmark = useToggleBookmarkMutation();
   const isLiked = quote.likedByMe ?? false;
+  const isBookmarked = quote.bookmarkedByMe ?? false;
   const authorLine = formatAuthorAttribution(quote.author, quote.authorCasing);
 
   const handleLike = async () => {
@@ -34,6 +39,15 @@ export default function QuoteCard({
       await toggleLike.mutateAsync(quote.id);
     } catch {
       toast.error("Could not save your like");
+    }
+  };
+
+  const handleBookmark = async () => {
+    try {
+      const result = await toggleBookmark.mutateAsync(quote.id);
+      toast.success(result.bookmarked ? "Saved to bookmarks" : "Removed from bookmarks");
+    } catch {
+      toast.error("Could not update bookmarks");
     }
   };
 
@@ -100,6 +114,23 @@ export default function QuoteCard({
             )}
           >
             <Heart className={cn("h-4 w-4", isLiked && "fill-current")} />
+          </button>
+
+          <button
+            type="button"
+            onClick={handleBookmark}
+            disabled={toggleBookmark.isPending}
+            aria-label={isBookmarked ? "Remove bookmark" : "Bookmark"}
+            className={cn(
+              "p-2.5 rounded-full verse-border transition-all duration-300 ease-verse",
+              "hover:-translate-y-0.5 hover:border-verse-accent/30",
+              "disabled:opacity-40",
+              isBookmarked && "text-verse-accent border-verse-accent/30"
+            )}
+          >
+            <Bookmark
+              className={cn("h-4 w-4", isBookmarked && "fill-current")}
+            />
           </button>
 
           <ExportButton

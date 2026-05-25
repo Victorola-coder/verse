@@ -15,6 +15,23 @@ interface LikeResponse {
   likes: number;
 }
 
+interface DailyQuoteResponse {
+  quote: Quote | null;
+  dayIndex: number | null;
+}
+
+export function useDailyQuoteQuery() {
+  return useQuery({
+    queryKey: ["quotes", "daily"],
+    queryFn: async () => {
+      const { data } = await api.get<DailyQuoteResponse>("/api/quotes/daily");
+      return data;
+    },
+    staleTime: 1000 * 60 * 30,
+    refetchOnWindowFocus: false,
+  });
+}
+
 export function useQuotesQuery(category?: QuoteCategory) {
   const activeCategory = useVerseStore((s) => s.activeCategory);
   const searchQuery = useVerseStore((s) => s.searchQuery);
