@@ -43,19 +43,25 @@ interface SocialShareMenuProps {
   canvasProps: QuoteCanvasProps;
   isOpen: boolean;
   onClose: () => void;
+  quoteId?: string;
 }
 
 export default function SocialShareMenu({
   canvasProps,
   isOpen,
   onClose,
+  quoteId,
 }: SocialShareMenuProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [imageBlob, setImageBlob] = useState<Blob | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const caption = buildShareCaption(canvasProps);
-  const links = getSocialShareLinks(caption);
+  const shareUrl =
+    quoteId && typeof window !== "undefined"
+      ? `${window.location.origin}/q/${quoteId}`
+      : undefined;
+  const caption = buildShareCaption(canvasProps, shareUrl);
+  const links = getSocialShareLinks(caption, shareUrl);
 
   useEffect(() => {
     if (!isOpen) {

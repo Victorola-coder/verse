@@ -17,13 +17,19 @@ interface LikeResponse {
 
 export function useQuotesQuery(category?: QuoteCategory) {
   const activeCategory = useVerseStore((s) => s.activeCategory);
+  const searchQuery = useVerseStore((s) => s.searchQuery);
+  const sort = useVerseStore((s) => s.sort);
   const cat = category ?? activeCategory;
 
   return useQuery({
-    queryKey: QUERY_KEYS.quotes(cat),
+    queryKey: QUERY_KEYS.quotes(cat, sort, searchQuery),
     queryFn: async () => {
       const { data } = await api.get<QuotesResponse>("/api/quotes", {
-        params: { category: cat },
+        params: {
+          category: cat,
+          sort,
+          ...(searchQuery.trim() ? { q: searchQuery.trim() } : {}),
+        },
       });
       return data.quotes;
     },
@@ -71,6 +77,55 @@ export function useCreateQuoteMutation() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["quotes"] });
       await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.drafts() });
+    },
+  });
+}
+
+export function useBookmarkedQuotesQuery() {
+  return useQuery({
+    queryKey: ["bookmarks"],
+    queryFn: async () => {
+      const { data } = await api.get<QuotesResponse>("/api/bookmarks");
+      return data.quotes;
+    },
+    staleTime: STALE_TIME.quotes,
+  });
+}
+
+export function useToggleBookmarkMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (quoteId: string) => {
+      const { data } = await api.post<{ bookmarked: boolean }>(
+        `/api/quotes/${quoteId}/bookmark`
+      );
+      return { quoteId, ...data };
+    },
+    onMutate: async (quoteId) => {
+      await queryClient.cancelQueries({ queryKey: ["quotes"] });
+      const previous = queryClient.getQueriesData<Quote[]>({
+        queryKey: ["quotes"],
+      });
+
+      queryClient.setQueriesData<Quote[]>({ queryKey: ["quotes"] }, (old) => {
+        if (!old) {
+          return old;
+        }
+        return old.map((q) =>
+          q.id === quoteId ? { ...q, bookmarkedByMe: !q.bookmarkedByMe } : q
+        );
+      });
+
+      return { previous };
+    },
+    onError: (_err, _id, context) => {
+      context?.previous?.forEach(([key, data]) => {
+        queryClient.setQueryData(key, data);
+      });
+    },
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["bookmarks"] });
     },
   });
 }

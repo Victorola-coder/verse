@@ -1,16 +1,22 @@
 import type { QuoteCanvasProps } from "@/components/QuoteCanvas";
 import { formatAuthorName } from "@/utils/format-author";
 
-export function buildShareCaption(props: QuoteCanvasProps): string {
+export function buildShareCaption(
+  props: QuoteCanvasProps,
+  shareUrl?: string
+): string {
   const marks = props.showQuoteMarks ?? true;
   const quote = marks ? `“${props.text.trim()}”` : props.text.trim();
   const author = formatAuthorName(props.author, props.authorCasing ?? "as-typed");
+  const trailer = shareUrl
+    ? `\n\n${shareUrl}\n\nvia Verse`
+    : "\n\nvia Verse";
 
   if (author) {
-    return `${quote}\n\n— ${author}\n\nvia Verse`;
+    return `${quote}\n\n— ${author}${trailer}`;
   }
 
-  return `${quote}\n\nvia Verse`;
+  return `${quote}${trailer}`;
 }
 
 export interface SocialShareLink {

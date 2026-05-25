@@ -5,6 +5,7 @@ import HeroSection from "@/components/HeroSection";
 import FeaturedQuotes from "@/components/FeaturedQuotes";
 import Categories from "@/components/Categories";
 import QuoteFeed from "@/components/QuoteFeed";
+import FeedControls from "@/components/FeedControls";
 import Footer from "@/components/Footer";
 
 export default function HomePage() {
@@ -20,7 +21,7 @@ export default function HomePage() {
           className="px-4 sm:px-6 py-16 sm:py-20 md:py-28 scroll-mt-20 sm:scroll-mt-24"
         >
           <div className="max-w-6xl mx-auto">
-            <header className="mb-12 md:mb-16 text-center">
+            <header className="mb-10 md:mb-12 text-center">
               <p className="font-sans text-xs text-verse-accent tracking-[0.3em] uppercase mb-4">
                 Discover
               </p>
@@ -28,6 +29,7 @@ export default function HomePage() {
                 Quote Feed
               </h2>
             </header>
+            <FeedControls />
             <QuoteFeed />
           </div>
         </section>

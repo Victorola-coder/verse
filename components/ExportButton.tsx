@@ -14,6 +14,7 @@ interface ExportButtonProps {
   variant?: "icon" | "button" | "both";
   className?: string;
   label?: string;
+  quoteId?: string;
 }
 
 export default function ExportButton({
@@ -21,6 +22,7 @@ export default function ExportButton({
   variant = "icon",
   className,
   label = "Export",
+  quoteId,
 }: ExportButtonProps) {
   void label;
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -86,6 +88,7 @@ export default function ExportButton({
   const shareMenu = (
     <SocialShareMenu
       canvasProps={canvasProps}
+      quoteId={quoteId}
       isOpen={shareOpen}
       onClose={() => setShareOpen(false)}
     />

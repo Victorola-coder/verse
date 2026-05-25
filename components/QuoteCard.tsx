@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Heart } from "lucide-react";
 import { toast } from "sonner";
 import ExportButton from "@/components/ExportButton";
@@ -49,18 +50,24 @@ export default function QuoteCard({
         className
       )}
     >
-      <blockquote
-        className={cn(
-          "font-serif font-light text-verse-text leading-[1.45]",
-          featured && "flex-1 text-xl md:text-2xl",
-          !featured && compact && "text-xl md:text-2xl",
-          !featured && !compact && "text-2xl md:text-3xl"
-        )}
+      <Link
+        href={`/q/${quote.id}`}
+        aria-label="Open quote"
+        className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-verse-accent/40 rounded-lg"
       >
-        {quote.showQuoteMarks && <span className="opacity-40">&ldquo;</span>}
-        {quote.text}
-        {quote.showQuoteMarks && <span className="opacity-40">&rdquo;</span>}
-      </blockquote>
+        <blockquote
+          className={cn(
+            "font-serif font-light text-verse-text leading-[1.45]",
+            featured && "flex-1 text-xl md:text-2xl",
+            !featured && compact && "text-xl md:text-2xl",
+            !featured && !compact && "text-2xl md:text-3xl"
+          )}
+        >
+          {quote.showQuoteMarks && <span className="opacity-40">&ldquo;</span>}
+          {quote.text}
+          {quote.showQuoteMarks && <span className="opacity-40">&rdquo;</span>}
+        </blockquote>
+      </Link>
 
       <footer
         className={cn(
@@ -97,6 +104,7 @@ export default function QuoteCard({
 
           <ExportButton
             variant="both"
+            quoteId={quote.id}
             canvasProps={{
               text: quote.text,
               author: quote.author,

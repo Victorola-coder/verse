@@ -9,20 +9,21 @@ datasource db {
 }
 
 model Quote {
-  id              String      @id @default(cuid())
+  id              String          @id @default(cuid())
   text            String
   author          String
   category        String
   theme           String
   alignment       String
   backgroundImage String?
-  showQuoteMarks  Boolean     @default(true)
-  authorCasing    String      @default("as-typed")
-  featured        Boolean     @default(false)
-  likesCount      Int         @default(0)
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  showQuoteMarks  Boolean         @default(true)
+  authorCasing    String          @default("as-typed")
+  featured        Boolean         @default(false)
+  likesCount      Int             @default(0)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
   likes           QuoteLike[]
+  bookmarks       QuoteBookmark[]
 
   @@index([category])
   @@index([featured])
@@ -40,6 +41,18 @@ model QuoteLike {
   @@unique([quoteId, sessionId])
   @@index([sessionId])
   @@map("quote_likes")
+}
+
+model QuoteBookmark {
+  id        String   @id @default(cuid())
+  quoteId   String
+  sessionId String
+  createdAt DateTime @default(now())
+  quote     Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  @@unique([quoteId, sessionId])
+  @@index([sessionId])
+  @@map("quote_bookmarks")
 }
 
 model QuoteDraft {

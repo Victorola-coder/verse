@@ -22,12 +22,18 @@ export async function GET(req: NextRequest) {
         : featuredParam === "false"
           ? false
           : undefined;
+    const search = searchParams.get("q") ?? undefined;
+    const sortParam = searchParams.get("sort");
+    const sort =
+      sortParam === "top" || sortParam === "trending" ? sortParam : "newest";
 
     const sessionId = getSessionIdFromRequest(req);
     const quotes = await getPublishedQuotes({
       category,
       featured,
       sessionId,
+      search,
+      sort,
     });
 
     return NextResponse.json({ quotes }, { status: 200 });

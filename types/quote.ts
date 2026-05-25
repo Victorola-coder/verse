@@ -29,6 +29,7 @@ export interface Quote {
   featured?: boolean;
   likes: number;
   likedByMe?: boolean;
+  bookmarkedByMe?: boolean;
   createdAt: string;
 }
 
