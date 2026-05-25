@@ -160,7 +160,7 @@ export default function ExportButton({
           )}
         >
           <Share2 className="h-4 w-4" />
-          Share to socials
+          Share
         </button>
         <button
           type="button"

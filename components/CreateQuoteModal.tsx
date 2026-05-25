@@ -450,7 +450,7 @@ export default function CreateQuoteModal() {
                   "disabled:opacity-40 disabled:pointer-events-none"
                 )}
               >
-                Publish to Feed
+                Publish
               </button>
               <ExportButton
                 variant="button"
