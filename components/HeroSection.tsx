@@ -1,13 +1,13 @@
 "use client";
 
-import { useQuotes } from "@/lib/quote-context";
-import { SEED_QUOTES } from "@/lib/quotes-data";
+import { useVerseStore } from "@/lib/store/verse";
 import { cn } from "@/utils/cn";
 
-const heroQuote = SEED_QUOTES.find((q) => q.id === "hero-1") ?? SEED_QUOTES[0];
+const HERO_TEXT = "Music no need permission to enter your spirit.";
+const HERO_AUTHOR = "Mohbad";
 
 export default function HeroSection() {
-  const { openCreate } = useQuotes();
+  const openCreate = useVerseStore((s) => s.openCreate);
 
   return (
     <section className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden px-4 sm:px-6 pt-20 pb-12">
@@ -30,17 +30,17 @@ export default function HeroSection() {
           <span className="block text-verse-muted/50 text-5xl md:text-6xl mb-4 select-none">
             &ldquo;
           </span>
-          {heroQuote.text}
+          {HERO_TEXT}
         </blockquote>
 
         <p className="mt-10 font-sans text-sm text-verse-accent tracking-[0.25em] uppercase">
-          — {heroQuote.author}
+          — {HERO_AUTHOR}
         </p>
 
         <div className="mt-14 flex flex-col sm:flex-row items-center justify-center gap-4">
           <button
             type="button"
-            onClick={openCreate}
+            onClick={() => openCreate()}
             className={cn(
               "w-full sm:w-auto font-sans text-sm px-8 py-3.5 rounded-full",
               "bg-verse-accent text-verse-bg",

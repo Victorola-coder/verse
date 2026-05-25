@@ -2,7 +2,7 @@
 
 import { Heart } from "lucide-react";
 import ExportButton from "@/components/ExportButton";
-import { useQuotes } from "@/lib/quote-context";
+import { useToggleLikeMutation } from "@/lib/hooks/use-quotes";
 import type { Quote } from "@/types/quote";
 import { cn } from "@/utils/cn";
 
@@ -19,8 +19,16 @@ export default function QuoteCard({
   featured = false,
   className,
 }: QuoteCardProps) {
-  const { likedIds, toggleLike } = useQuotes();
-  const isLiked = likedIds.has(quote.id);
+  const toggleLike = useToggleLikeMutation();
+  const isLiked = quote.likedByMe ?? false;
+
+  const handleLike = async () => {
+    try {
+      await toggleLike.mutateAsync(quote.id);
+    } catch {
+      // mutation rolls back optimistically
+    }
+  };
 
   return (
     <article
@@ -59,17 +67,17 @@ export default function QuoteCard({
         <div className="flex items-center gap-2 shrink-0">
           <button
             type="button"
-            onClick={() => toggleLike(quote.id)}
+            onClick={handleLike}
+            disabled={toggleLike.isPending}
             aria-label={isLiked ? "Unlike" : "Like"}
             className={cn(
               "p-2.5 rounded-full verse-border transition-all duration-300 ease-verse",
               "hover:-translate-y-0.5 hover:border-verse-accent/30",
+              "disabled:opacity-40",
               isLiked && "text-verse-accent border-verse-accent/30"
             )}
           >
-            <Heart
-              className={cn("h-4 w-4", isLiked && "fill-current")}
-            />
+            <Heart className={cn("h-4 w-4", isLiked && "fill-current")} />
           </button>
 
           <ExportButton

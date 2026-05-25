@@ -20,16 +20,31 @@ export interface Quote {
   backgroundImage?: string;
   featured?: boolean;
   likes: number;
+  likedByMe?: boolean;
   createdAt: string;
 }
 
+export interface SavedQuoteDraft {
+  id: string;
+  sessionId: string;
+  text: string;
+  author: string;
+  category: Exclude<QuoteCategory, "all">;
+  theme: QuoteTheme;
+  alignment: QuoteAlignment;
+  backgroundImage?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface QuoteDraft {
+  id?: string;
   text: string;
   author: string;
   theme: QuoteTheme;
   alignment: QuoteAlignment;
   backgroundImage?: string;
-  category: QuoteCategory;
+  category: Exclude<QuoteCategory, "all">;
 }
 
 export const DEFAULT_QUOTE_DRAFT: QuoteDraft = {

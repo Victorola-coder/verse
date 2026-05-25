@@ -1,17 +1,17 @@
 "use client";
 
-import { useQuotes } from "@/lib/quote-context";
+import { useVerseStore } from "@/lib/store/verse";
 import { cn } from "@/utils/cn";
 
 export default function Navbar() {
-  const { openCreate } = useQuotes();
+  const openCreate = useVerseStore((s) => s.openCreate);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
       <nav
         className={cn(
           "mx-auto max-w-6xl px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between gap-4",
-          "bg-verse-bg/80_ backdrop-blur-md border-b_ border-verse",
+          "bg-verse-bg/80 backdrop-blur-md border-b border-verse",
           "pt-[max(1rem,env(safe-area-inset-top))]"
         )}
       >
@@ -31,7 +31,7 @@ export default function Navbar() {
           </a>
           <button
             type="button"
-            onClick={openCreate}
+            onClick={() => openCreate()}
             className={cn(
               "font-sans text-xs sm:text-sm px-4 sm:px-5 py-2 rounded-full whitespace-nowrap",
               "bg-verse-accent text-verse-bg",

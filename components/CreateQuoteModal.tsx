@@ -1,12 +1,21 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import QuoteCanvas from "@/components/QuoteCanvas";
 import ExportButton from "@/components/ExportButton";
 import { CATEGORY_LABELS } from "@/lib/quotes-data";
 import { THEME_LABELS } from "@/lib/themes";
-import { useQuotes } from "@/lib/quote-context";
+import {
+  draftToForm,
+  uploadQuoteImage,
+  useDeleteDraftMutation,
+  useDraftQuery,
+  useDraftsQuery,
+  useSaveDraftMutation,
+} from "@/lib/hooks/use-drafts";
+import { useCreateQuoteMutation } from "@/lib/hooks/use-quotes";
+import { useVerseStore } from "@/lib/store/verse";
 import {
   DEFAULT_QUOTE_DRAFT,
   type QuoteAlignment,
@@ -24,9 +33,30 @@ const CATEGORIES = Object.keys(CATEGORY_LABELS) as Exclude<
 >[];
 
 export default function CreateQuoteModal() {
-  const { isCreateOpen, closeCreate, addQuote } = useQuotes();
+  const { isCreateOpen, closeCreate, activeDraftId, setActiveDraftId } =
+    useVerseStore();
   const [draft, setDraft] = useState<QuoteDraft>(DEFAULT_QUOTE_DRAFT);
+  const [saveStatus, setSaveStatus] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { data: drafts = [] } = useDraftsQuery(isCreateOpen);
+  const { data: loadedDraft } = useDraftQuery(activeDraftId);
+  const saveDraftMutation = useSaveDraftMutation();
+  const deleteDraftMutation = useDeleteDraftMutation();
+  const createQuoteMutation = useCreateQuoteMutation();
+
+  useEffect(() => {
+    if (loadedDraft) {
+      setDraft(draftToForm(loadedDraft));
+    }
+  }, [loadedDraft]);
+
+  useEffect(() => {
+    if (isCreateOpen && !activeDraftId) {
+      setDraft(DEFAULT_QUOTE_DRAFT);
+    }
+  }, [isCreateOpen, activeDraftId]);
 
   const updateDraft = useCallback(
     <K extends keyof QuoteDraft>(key: K, value: QuoteDraft[K]) => {
@@ -36,45 +66,93 @@ export default function CreateQuoteModal() {
   );
 
   const handleImageUpload = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (!file) {
         return;
       }
 
+      setIsUploading(true);
       try {
-        const reader = new FileReader();
-        reader.onload = () => {
-          if (typeof reader.result === "string") {
-            updateDraft("backgroundImage", reader.result);
-          }
-        };
-        reader.readAsDataURL(file);
+        const url = await uploadQuoteImage(file);
+        updateDraft("backgroundImage", url);
       } catch {
-        // ignore read errors
+        setSaveStatus("Upload failed");
+        setTimeout(() => setSaveStatus(null), 2000);
+      } finally {
+        setIsUploading(false);
       }
     },
     [updateDraft]
   );
 
-  const handlePublish = useCallback(() => {
+  const handleSaveDraft = useCallback(async () => {
+    setSaveStatus(null);
+    try {
+      const saved = await saveDraftMutation.mutateAsync(draft);
+      setDraft(draftToForm(saved));
+      setActiveDraftId(saved.id);
+      setSaveStatus("Draft saved");
+      setTimeout(() => setSaveStatus(null), 2000);
+    } catch {
+      setSaveStatus("Save failed");
+      setTimeout(() => setSaveStatus(null), 2000);
+    }
+  }, [draft, saveDraftMutation, setActiveDraftId]);
+
+  const handlePublish = useCallback(async () => {
     if (!draft.text.trim()) {
       return;
     }
 
-    addQuote(draft);
-    setDraft(DEFAULT_QUOTE_DRAFT);
-    closeCreate();
-  }, [draft, addQuote, closeCreate]);
+    try {
+      await createQuoteMutation.mutateAsync(draft);
+      setDraft(DEFAULT_QUOTE_DRAFT);
+      setActiveDraftId(null);
+      closeCreate();
+    } catch {
+      setSaveStatus("Publish failed");
+      setTimeout(() => setSaveStatus(null), 2000);
+    }
+  }, [draft, createQuoteMutation, closeCreate, setActiveDraftId]);
 
   const handleClose = useCallback(() => {
     setDraft(DEFAULT_QUOTE_DRAFT);
+    setActiveDraftId(null);
     closeCreate();
-  }, [closeCreate]);
+  }, [closeCreate, setActiveDraftId]);
+
+  const handleLoadDraft = useCallback(
+    (id: string) => {
+      setActiveDraftId(id);
+    },
+    [setActiveDraftId]
+  );
+
+  const handleDeleteDraft = useCallback(
+    async (id: string) => {
+      try {
+        await deleteDraftMutation.mutateAsync(id);
+        if (activeDraftId === id) {
+          setDraft(DEFAULT_QUOTE_DRAFT);
+          setActiveDraftId(null);
+        }
+      } catch {
+        setSaveStatus("Delete failed");
+        setTimeout(() => setSaveStatus(null), 2000);
+      }
+    },
+    [deleteDraftMutation, activeDraftId, setActiveDraftId]
+  );
 
   if (!isCreateOpen) {
     return null;
   }
+
+  const isSaving =
+    saveDraftMutation.isPending ||
+    createQuoteMutation.isPending ||
+    isUploading;
 
   return (
     <div
@@ -113,7 +191,39 @@ export default function CreateQuoteModal() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 lg:gap-0">
+        {drafts.length > 0 && (
+          <div className="px-4 sm:px-6 py-3 border-b border-verse flex flex-wrap gap-2">
+            <span className="font-sans text-[10px] text-verse-muted tracking-widest uppercase w-full mb-1">
+              Your drafts
+            </span>
+            {drafts.map((d) => (
+              <div key={d.id} className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => handleLoadDraft(d.id)}
+                  className={cn(
+                    "font-sans text-xs px-3 py-1.5 rounded-full verse-border transition-all duration-300 max-w-[140px] truncate",
+                    activeDraftId === d.id
+                      ? "bg-verse-accent/20 text-verse-accent border-verse-accent/30"
+                      : "text-verse-muted hover:text-verse-text"
+                  )}
+                >
+                  {d.text.slice(0, 24) || "Untitled"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDeleteDraft(d.id)}
+                  aria-label="Delete draft"
+                  className="text-verse-muted hover:text-verse-accent text-xs px-1"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
           <div className="p-4 sm:p-6 space-y-6 border-b lg:border-b-0 lg:border-r border-verse">
             <div>
               <label className="font-sans text-xs text-verse-muted tracking-widest uppercase mb-2 block">
@@ -162,13 +272,14 @@ export default function CreateQuoteModal() {
                 onChange={handleImageUpload}
                 className="hidden"
               />
-              <div className="flex gap-3">
+              <div className="flex gap-3 items-center">
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="font-sans text-xs px-4 py-2 rounded-full verse-border text-verse-muted transition-all duration-300 hover:text-verse-text hover:-translate-y-0.5"
+                  disabled={isUploading}
+                  className="font-sans text-xs px-4 py-2 rounded-full verse-border text-verse-muted transition-all duration-300 hover:text-verse-text hover:-translate-y-0.5 disabled:opacity-40"
                 >
-                  Upload
+                  {isUploading ? "Uploading…" : "Upload"}
                 </button>
                 {draft.backgroundImage && (
                   <button
@@ -251,11 +362,27 @@ export default function CreateQuoteModal() {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            {saveStatus && (
+              <p className="font-sans text-xs text-verse-accent">{saveStatus}</p>
+            )}
+
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-2">
+              <button
+                type="button"
+                onClick={handleSaveDraft}
+                disabled={isSaving}
+                className={cn(
+                  "flex-1 font-sans text-sm py-3 rounded-full verse-border text-verse-text",
+                  "transition-all duration-300 hover:border-verse-accent/40 hover:-translate-y-0.5",
+                  "disabled:opacity-40 disabled:pointer-events-none"
+                )}
+              >
+                Save Draft
+              </button>
               <button
                 type="button"
                 onClick={handlePublish}
-                disabled={!draft.text.trim()}
+                disabled={!draft.text.trim() || isSaving}
                 className={cn(
                   "flex-1 font-sans text-sm py-3 rounded-full",
                   "bg-verse-accent text-verse-bg",

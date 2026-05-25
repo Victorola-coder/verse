@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Quote {
+  id              String      @id @default(cuid())
+  text            String
+  author          String
+  category        String
+  theme           String
+  alignment       String
+  backgroundImage String?
+  featured        Boolean     @default(false)
+  likesCount      Int         @default(0)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  likes           QuoteLike[]
+
+  @@index([category])
+  @@index([featured])
+  @@index([createdAt])
+  @@map("quotes")
+}
+
+model QuoteLike {
+  id        String   @id @default(cuid())
+  quoteId   String
+  sessionId String
+  createdAt DateTime @default(now())
+  quote     Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  @@unique([quoteId, sessionId])
+  @@index([sessionId])
+  @@map("quote_likes")
+}
+
+model QuoteDraft {
+  id              String   @id @default(cuid())
+  sessionId       String
+  text            String   @default("")
+  author          String   @default("")
+  category        String   @default("life")
+  theme           String   @default("dark")
+  alignment       String   @default("center")
+  backgroundImage String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([sessionId])
+  @@index([updatedAt])
+  @@map("quote_drafts")
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import { CATEGORY_LABELS } from "@/lib/quotes-data";
-import { useQuotes } from "@/lib/quote-context";
+import { useVerseStore } from "@/lib/store/verse";
 import type { QuoteCategory } from "@/types/quote";
 import { cn } from "@/utils/cn";
 
@@ -15,10 +15,10 @@ const CATEGORIES: QuoteCategory[] = [
 ];
 
 export default function Categories() {
-  const { activeCategory, setActiveCategory } = useQuotes();
+  const { activeCategory, setActiveCategory } = useVerseStore();
 
   return (
-    <section className="px-6 py-4">
+    <section className="px-4 sm:px-6 py-4">
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-wrap justify-center gap-3">
           {CATEGORIES.map((category) => {
