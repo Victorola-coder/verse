@@ -1,12 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
-import { isNextResponse, requireSessionId } from "@/lib/api-utils";
-import { serializeDraft } from "@/lib/serialize-draft";
-import { updateDraftSchema } from "@/lib/validations/quote";
 import {
-  deleteDraftForSession,
   getDraftById,
+  deleteDraftForSession,
   updateDraftForSession,
-} from "@/lib/services/quotes";
+} from "@/lib/services/quotes"
+import { serializeDraft } from "@/lib/serialize-draft";
+import { NextRequest, NextResponse } from "next/server";
+import { updateDraftSchema } from "@/lib/validations/quote";
+import { isNextResponse, requireSessionId } from "@/lib/api-utils";
+
 
 export async function GET(
   req: NextRequest,

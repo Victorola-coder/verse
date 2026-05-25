@@ -1,10 +1,10 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { QUERY_KEYS, STALE_TIME } from "@/lib/constants";
 import { useVerseStore } from "@/lib/store/verse";
+import { QUERY_KEYS, STALE_TIME } from "@/lib/constants";
 import type { Quote, QuoteCategory, QuoteDraft } from "@/types/quote";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface QuotesResponse {
   quotes: Quote[];

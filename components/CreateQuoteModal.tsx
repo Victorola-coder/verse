@@ -476,7 +476,7 @@ export default function CreateQuoteModal() {
               text={draft.text}
               author={draft.author}
               theme={draft.theme}
-              alignment={ draft.alignment}
+              alignment={draft.alignment}
               backgroundImage={draft.backgroundImage}
               showQuoteMarks={draft.showQuoteMarks}
               authorCasing={draft.authorCasing}

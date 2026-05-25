@@ -1,13 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
-import { isNextResponse, requireSessionId } from "@/lib/api-utils";
-import { createQuoteSchema } from "@/lib/validations/quote";
+
 import {
+  getPublishedQuotes,
   createPublishedQuote,
   deleteDraftAfterPublish,
-  getPublishedQuotes,
 } from "@/lib/services/quotes";
-import { getSessionIdFromRequest } from "@/lib/session";
 import type { QuoteCategory } from "@/types/quote";
+import { NextRequest, NextResponse } from "next/server";
+import { getSessionIdFromRequest } from "@/lib/session";
+import { createQuoteSchema } from "@/lib/validations/quote";
+import { isNextResponse, requireSessionId } from "@/lib/api-utils";
 
 export async function GET(req: NextRequest) {
   try {

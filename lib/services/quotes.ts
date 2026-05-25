@@ -1,5 +1,5 @@
-import type { Quote as PrismaQuote } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import type { Quote as PrismaQuote } from "@prisma/client";
 import type { AuthorCasing, Quote, QuoteCategory } from "@/types/quote";
 
 function parseAuthorCasing(value: string): AuthorCasing {

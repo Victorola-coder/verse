@@ -1,7 +1,7 @@
+import { prisma } from "@/lib/prisma";
+import { toggleQuoteLike } from "@/lib/services/quotes";
 import { NextRequest, NextResponse } from "next/server";
 import { isNextResponse, requireSessionId } from "@/lib/api-utils";
-import { toggleQuoteLike } from "@/lib/services/quotes";
-import { prisma } from "@/lib/prisma";
 
 export async function POST(
   req: NextRequest,

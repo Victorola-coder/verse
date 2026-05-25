@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function useQuotesRealtime() {
   const queryClient = useQueryClient();
