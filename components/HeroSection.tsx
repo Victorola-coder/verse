@@ -1,16 +1,50 @@
 "use client";
 
+import { useMemo, useState } from "react";
+import { Shuffle } from "lucide-react";
 import { useVerseStore } from "@/lib/store/verse";
+import {
+  useFeaturedQuotesQuery,
+  useQuotesQuery,
+} from "@/lib/hooks/use-quotes";
+import { formatAuthorAttribution } from "@/utils/format-author";
 import { cn } from "@/utils/cn";
 
-const HERO_TEXT = "Music no need permission to enter your spirit.";
-const HERO_AUTHOR = "Mohbad";
+const FALLBACK_HERO = {
+  text: "Music no need permission to enter your spirit.",
+  author: "Mohbad",
+  authorCasing: "as-typed" as const,
+};
 
 export default function HeroSection() {
   const openCreate = useVerseStore((s) => s.openCreate);
+  const { data: featured = [] } = useFeaturedQuotesQuery();
+  const { data: allQuotes = [] } = useQuotesQuery("all");
+  const [shuffleKey, setShuffleKey] = useState(0);
+
+  const pool = useMemo(() => {
+    if (featured.length > 0) {
+      return featured;
+    }
+    return allQuotes;
+  }, [featured, allQuotes]);
+
+  const hero = useMemo(() => {
+    void shuffleKey;
+    if (pool.length === 0) {
+      return FALLBACK_HERO;
+    }
+    const idx = Math.floor(Math.random() * pool.length);
+    return pool[idx];
+  }, [pool, shuffleKey]);
+
+  const heroAuthor = formatAuthorAttribution(
+    hero.author,
+    hero.authorCasing
+  );
 
   return (
-    <section className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden px-4 sm:px-6 pt-20 pb-12">
+    <section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden px-4 sm:px-6 pt-20 pb-12">
       <div
         className="absolute inset-0 opacity-40"
         style={{
@@ -26,18 +60,23 @@ export default function HeroSection() {
           "animate-[fadeUp_1.2s_ease-out_forwards] opacity-0"
         )}
       >
-        <blockquote className="font-serif font-light text-verse-text leading-[1.35] text-[clamp(1.75rem,6vw,4.5rem)] tracking-tight">
+        <blockquote
+          key={hero.text}
+          className="font-serif font-light text-verse-text leading-[1.35] text-[clamp(1.75rem,6vw,4.5rem)] tracking-tight animate-[fadeUp_0.6s_ease-out_forwards]"
+        >
           <span className="block text-verse-muted/50 text-5xl md:text-6xl mb-4 select-none">
             &ldquo;
           </span>
-          {HERO_TEXT}
+          {hero.text}
         </blockquote>
 
-        <p className="mt-10 font-sans text-sm text-verse-accent tracking-[0.25em] uppercase">
-          — {HERO_AUTHOR}
-        </p>
+        {heroAuthor && (
+          <p className="mt-10 font-sans text-sm text-verse-accent tracking-[0.25em] uppercase">
+            — {heroAuthor}
+          </p>
+        )}
 
-        <div className="mt-14 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <div className="mt-14 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
           <button
             type="button"
             onClick={() => openCreate()}
@@ -61,6 +100,20 @@ export default function HeroSection() {
           >
             Explore
           </a>
+          {pool.length > 1 && (
+            <button
+              type="button"
+              onClick={() => setShuffleKey((k) => k + 1)}
+              aria-label="Show another quote"
+              className={cn(
+                "p-3.5 rounded-full verse-border text-verse-muted",
+                "transition-all duration-300 ease-verse",
+                "hover:border-verse-accent/40 hover:text-verse-accent hover:-translate-y-0.5"
+              )}
+            >
+              <Shuffle className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </div>
     </section>

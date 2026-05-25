@@ -173,21 +173,23 @@ export default function CreateQuoteModal() {
 
       <div
         className={cn(
-          "relative z-10 w-full max-w-5xl max-h-[95vh] overflow-y-auto",
-          "bg-verse-card verse-border rounded-t-2xl sm:rounded-2xl",
+          "relative z-10 w-full max-w-5xl flex flex-col",
+          "h-[100dvh] sm:h-auto sm:max-h-[92vh]",
+          "bg-verse-card verse-border rounded-t-2xl sm:rounded-2xl overflow-hidden",
           "animate-[slideUp_0.4s_ease-out_forwards]"
         )}
       >
-        <div className="sticky top-0 z-20 flex items-center justify-between px-4 sm:px-6 py-4 bg-verse-card/95 backdrop-blur-md border-b border-verse">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 bg-verse-card/95 backdrop-blur-md border-b border-verse shrink-0">
           <h2
             id="create-quote-title"
-            className="font-serif text-xl sm:text-2xl text-verse-text"
+            className="font-serif text-lg sm:text-2xl text-verse-text"
           >
             Create Quote
           </h2>
           <button
             type="button"
             onClick={handleClose}
+            aria-label="Close"
             className="p-2 rounded-full verse-border text-verse-muted transition-colors duration-300 hover:text-verse-text"
           >
             <X className="h-5 w-5" />
@@ -195,38 +197,40 @@ export default function CreateQuoteModal() {
         </div>
 
         {drafts.length > 0 && (
-          <div className="px-4 sm:px-6 py-3 border-b border-verse flex flex-wrap gap-2">
-            <span className="font-sans text-[10px] text-verse-muted tracking-widest uppercase w-full mb-1">
+          <div className="px-4 sm:px-6 py-2 sm:py-3 border-b border-verse shrink-0">
+            <span className="font-sans text-[10px] text-verse-muted tracking-widest uppercase block mb-1.5">
               Your drafts
             </span>
-            {drafts.map((d) => (
-              <div key={d.id} className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => handleLoadDraft(d.id)}
-                  className={cn(
-                    "font-sans text-xs px-3 py-1.5 rounded-full verse-border transition-all duration-300 max-w-[140px] truncate",
-                    activeDraftId === d.id
-                      ? "bg-verse-accent/20 text-verse-accent border-verse-accent/30"
-                      : "text-verse-muted hover:text-verse-text"
-                  )}
-                >
-                  {d.text.slice(0, 24) || "Untitled"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDeleteDraft(d.id)}
-                  aria-label="Delete draft"
-                  className="text-verse-muted hover:text-verse-accent text-xs px-1"
-                >
-                  ×
-                </button>
-              </div>
-            ))}
+            <div className="flex gap-2 overflow-x-auto -mx-1 px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {drafts.map((d) => (
+                <div key={d.id} className="flex items-center gap-1 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => handleLoadDraft(d.id)}
+                    className={cn(
+                      "font-sans text-xs px-3 py-1.5 rounded-full verse-border transition-all duration-300 max-w-[140px] truncate",
+                      activeDraftId === d.id
+                        ? "bg-verse-accent/20 text-verse-accent border-verse-accent/30"
+                        : "text-verse-muted hover:text-verse-text"
+                    )}
+                  >
+                    {d.text.slice(0, 24) || "Untitled"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteDraft(d.id)}
+                    aria-label="Delete draft"
+                    className="text-verse-muted hover:text-verse-accent text-xs px-1"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
+        <div className="flex-1 overflow-y-auto grid grid-cols-1 lg:grid-cols-2 gap-0">
           <div className="p-4 sm:p-6 space-y-6 border-b lg:border-b-0 lg:border-r border-verse">
             <div>
               <label className="font-sans text-xs text-verse-muted tracking-widest uppercase mb-2 block">
@@ -468,20 +472,22 @@ export default function CreateQuoteModal() {
             </div>
           </div>
 
-          <div className="p-4 sm:p-6 bg-verse-bg/50 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
-            <p className="font-sans text-xs text-verse-muted tracking-widest uppercase mb-4 text-center">
+          <div className="p-3 sm:p-6 bg-verse-bg/50">
+            <p className="font-sans text-[10px] sm:text-xs text-verse-muted tracking-widest uppercase mb-2 sm:mb-4 text-center">
               Live Preview
             </p>
-            <QuoteCanvas
-              text={draft.text}
-              author={draft.author}
-              theme={draft.theme}
-              alignment={draft.alignment}
-              backgroundImage={draft.backgroundImage}
-              showQuoteMarks={draft.showQuoteMarks}
-              authorCasing={draft.authorCasing}
-              className="rounded-xl verse-border"
-            />
+            <div className="max-w-[280px] sm:max-w-sm lg:max-w-none mx-auto">
+              <QuoteCanvas
+                text={draft.text}
+                author={draft.author}
+                theme={draft.theme}
+                alignment={draft.alignment}
+                backgroundImage={draft.backgroundImage}
+                showQuoteMarks={draft.showQuoteMarks}
+                authorCasing={draft.authorCasing}
+                className="rounded-xl verse-border"
+              />
+            </div>
           </div>
         </div>
       </div>

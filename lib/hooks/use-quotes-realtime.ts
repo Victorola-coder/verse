@@ -13,25 +13,35 @@ export function useQuotesRealtime() {
       return;
     }
 
+    let pending: ReturnType<typeof setTimeout> | null = null;
+    const scheduleInvalidate = () => {
+      if (pending) {
+        return;
+      }
+      pending = setTimeout(() => {
+        pending = null;
+        void queryClient.invalidateQueries({ queryKey: ["quotes"] });
+      }, 800);
+    };
+
     const channel = client
       .channel("verse-quotes-realtime")
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "quotes" },
-        () => {
-          void queryClient.invalidateQueries({ queryKey: ["quotes"] });
-        }
+        { event: "INSERT", schema: "public", table: "quotes" },
+        scheduleInvalidate
       )
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "quote_likes" },
-        () => {
-          void queryClient.invalidateQueries({ queryKey: ["quotes"] });
-        }
+        { event: "DELETE", schema: "public", table: "quotes" },
+        scheduleInvalidate
       )
       .subscribe();
 
     return () => {
+      if (pending) {
+        clearTimeout(pending);
+      }
       void client.removeChannel(channel);
     };
   }, [queryClient]);

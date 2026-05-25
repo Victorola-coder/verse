@@ -28,7 +28,8 @@ export function useQuotesQuery(category?: QuoteCategory) {
       return data.quotes;
     },
     staleTime: STALE_TIME.quotes,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
+    placeholderData: (previous) => previous,
   });
 }
 
@@ -42,7 +43,8 @@ export function useFeaturedQuotesQuery() {
       return data.quotes;
     },
     staleTime: STALE_TIME.quotes,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
+    placeholderData: (previous) => previous,
   });
 }
 
@@ -113,9 +115,7 @@ export function useToggleLikeMutation() {
       context?.previous?.forEach(([key, data]) => {
         queryClient.setQueryData(key, data);
       });
-    },
-    onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["quotes"] });
+      void queryClient.invalidateQueries({ queryKey: ["quotes"] });
     },
   });
 }
