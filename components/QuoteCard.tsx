@@ -9,32 +9,49 @@ import { cn } from "@/utils/cn";
 interface QuoteCardProps {
   quote: Quote;
   compact?: boolean;
+  featured?: boolean;
+  className?: string;
 }
 
-export default function QuoteCard({ quote, compact = false }: QuoteCardProps) {
+export default function QuoteCard({
+  quote,
+  compact = false,
+  featured = false,
+  className,
+}: QuoteCardProps) {
   const { likedIds, toggleLike } = useQuotes();
   const isLiked = likedIds.has(quote.id);
 
   return (
     <article
       className={cn(
-        "group relative flex flex-col verse-border rounded-2xl bg-verse-card p-8 md:p-10",
+        "group relative flex flex-col verse-border rounded-2xl bg-verse-card",
         "transition-all duration-500 ease-verse",
         "hover:-translate-y-1 hover:border-white/15",
         "hover:shadow-[0_24px_48px_-12px_rgba(214,185,140,0.08)]",
-        compact && "p-6 md:p-8"
+        featured && "h-full p-6 md:p-8",
+        !featured && compact && "p-6 md:p-8",
+        !featured && !compact && "p-8 md:p-10",
+        className
       )}
     >
       <blockquote
         className={cn(
           "font-serif font-light text-verse-text leading-[1.45]",
-          compact ? "text-xl md:text-2xl" : "text-2xl md:text-3xl"
+          featured && "flex-1 text-xl md:text-2xl",
+          !featured && compact && "text-xl md:text-2xl",
+          !featured && !compact && "text-2xl md:text-3xl"
         )}
       >
         &ldquo;{quote.text}&rdquo;
       </blockquote>
 
-      <footer className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <footer
+        className={cn(
+          "flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between",
+          featured ? "mt-6 pt-6 border-t border-verse" : "mt-8"
+        )}
+      >
         <p className="font-sans text-xs text-verse-accent tracking-[0.2em] uppercase break-words">
           — {quote.author}
         </p>
@@ -67,7 +84,7 @@ export default function QuoteCard({ quote, compact = false }: QuoteCardProps) {
         </div>
       </footer>
 
-      {!compact && (
+      {!compact && !featured && (
         <span className="absolute top-6 right-6 font-sans text-[10px] text-verse-muted tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           {quote.likes} appreciations
         </span>

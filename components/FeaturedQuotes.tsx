@@ -7,7 +7,7 @@ export default function FeaturedQuotes() {
   const { featuredQuotes } = useQuotes();
 
   return (
-    <section className="px-6 py-20 md:py-28">
+    <section className="px-4 sm:px-6 py-20 md:py-28">
       <div className="max-w-6xl mx-auto">
         <header className="mb-12 md:mb-16 text-center">
           <p className="font-sans text-xs text-verse-accent tracking-[0.3em] uppercase mb-4">
@@ -18,16 +18,13 @@ export default function FeaturedQuotes() {
           </h2>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-          {featuredQuotes.map((quote, index) => (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-stretch">
+          {featuredQuotes.map((quote) => (
             <div
               key={quote.id}
-              className={index === 0 ? "lg:col-span-1 lg:row-span-1" : ""}
-              style={{
-                animationDelay: `${index * 120}ms`,
-              }}
+              className="flex min-h-[280px] md:min-h-[320px]"
             >
-              <QuoteCard quote={quote} compact={index > 0} />
+              <QuoteCard quote={quote} featured className="w-full" />
             </div>
           ))}
         </div>
