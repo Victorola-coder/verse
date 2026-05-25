@@ -2,13 +2,13 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "long sitename",
-    short_name: "sitename",
-    description: "sitename description",
+    name: "Verse",
+    short_name: "Verse",
+    description: "A digital mood and quote experience.",
     start_url: "/",
     display: "standalone",
-    background_color: "#fff",
-    theme_color: "#fff",
+    background_color: "#0E0E0E",
+    theme_color: "#0E0E0E",
     icons: [
       {
         src: "/favicon.ico",

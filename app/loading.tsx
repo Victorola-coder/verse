@@ -1,9 +1,11 @@
-import { Loader } from "@/app/components/global";
-
-export default function Spin() {
+export default function Loading() {
   return (
-    <div className="w-screen h-screen bg-body flex items-center justify-center">
-      <Loader />
-    </div>
+    <main className="min-h-screen flex items-center justify-center">
+      <div
+        className="h-6 w-6 rounded-full border border-verse-accent/30 border-t-verse-accent animate-spin"
+        aria-label="Loading"
+        role="status"
+      />
+    </main>
   );
 }
