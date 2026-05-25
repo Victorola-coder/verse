@@ -17,7 +17,9 @@ import {
 import { useCreateQuoteMutation } from "@/lib/hooks/use-quotes";
 import { useVerseStore } from "@/lib/store/verse";
 import {
+  AUTHOR_CASING_LABELS,
   DEFAULT_QUOTE_DRAFT,
+  type AuthorCasing,
   type QuoteAlignment,
   type QuoteCategory,
   type QuoteDraft,
@@ -31,6 +33,7 @@ const CATEGORIES = Object.keys(CATEGORY_LABELS) as Exclude<
   QuoteCategory,
   "all"
 >[];
+const AUTHOR_CASINGS = Object.keys(AUTHOR_CASING_LABELS) as AuthorCasing[];
 
 export default function CreateQuoteModal() {
   const { isCreateOpen, closeCreate, activeDraftId, setActiveDraftId } =
@@ -262,6 +265,63 @@ export default function CreateQuoteModal() {
             </div>
 
             <div>
+              <label className="font-sans text-xs text-verse-muted tracking-widest uppercase mb-3 block">
+                Style
+              </label>
+              <div className="space-y-4">
+                <label className="flex items-center justify-between gap-4 cursor-pointer">
+                  <span className="font-sans text-sm text-verse-text">
+                    Show quote marks (&ldquo; &rdquo;)
+                  </span>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={draft.showQuoteMarks}
+                    onClick={() =>
+                      updateDraft("showQuoteMarks", !draft.showQuoteMarks)
+                    }
+                    className={cn(
+                      "relative w-11 h-6 rounded-full transition-colors duration-300 shrink-0",
+                      draft.showQuoteMarks
+                        ? "bg-verse-accent"
+                        : "bg-verse-bg verse-border"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-verse-text transition-transform duration-300",
+                        draft.showQuoteMarks && "translate-x-5"
+                      )}
+                    />
+                  </button>
+                </label>
+
+                <div>
+                  <span className="font-sans text-xs text-verse-muted block mb-2">
+                    Author name format
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {AUTHOR_CASINGS.map((casing) => (
+                      <button
+                        key={casing}
+                        type="button"
+                        onClick={() => updateDraft("authorCasing", casing)}
+                        className={cn(
+                          "font-sans text-xs px-3 py-1.5 rounded-full verse-border transition-all duration-300",
+                          draft.authorCasing === casing
+                            ? "bg-verse-accent/20 text-verse-accent border-verse-accent/30"
+                            : "text-verse-muted hover:text-verse-text"
+                        )}
+                      >
+                        {AUTHOR_CASING_LABELS[casing]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
               <label className="font-sans text-xs text-verse-muted tracking-widest uppercase mb-2 block">
                 Background Image
               </label>
@@ -401,6 +461,8 @@ export default function CreateQuoteModal() {
                   theme: draft.theme,
                   alignment: draft.alignment,
                   backgroundImage: draft.backgroundImage,
+                  showQuoteMarks: draft.showQuoteMarks,
+                  authorCasing: draft.authorCasing,
                 }}
               />
             </div>
@@ -414,8 +476,10 @@ export default function CreateQuoteModal() {
               text={draft.text}
               author={draft.author}
               theme={draft.theme}
-              alignment={draft.alignment}
+              alignment={ draft.alignment}
               backgroundImage={draft.backgroundImage}
+              showQuoteMarks={draft.showQuoteMarks}
+              authorCasing={draft.authorCasing}
               className="rounded-xl verse-border"
             />
           </div>

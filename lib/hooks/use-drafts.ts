@@ -22,6 +22,8 @@ export function draftToForm(draft: SavedQuoteDraft): QuoteDraft {
     theme: draft.theme,
     alignment: draft.alignment,
     backgroundImage: draft.backgroundImage ?? undefined,
+    showQuoteMarks: draft.showQuoteMarks,
+    authorCasing: draft.authorCasing,
   };
 }
 
@@ -63,6 +65,8 @@ export function useSaveDraftMutation() {
             theme: draft.theme,
             alignment: draft.alignment,
             backgroundImage: draft.backgroundImage ?? null,
+            showQuoteMarks: draft.showQuoteMarks,
+            authorCasing: draft.authorCasing,
           }
         );
         return data.draft;
@@ -75,6 +79,8 @@ export function useSaveDraftMutation() {
         theme: draft.theme,
         alignment: draft.alignment,
         backgroundImage: draft.backgroundImage ?? null,
+        showQuoteMarks: draft.showQuoteMarks,
+        authorCasing: draft.authorCasing,
       });
       return data.draft;
     },

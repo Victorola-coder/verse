@@ -60,6 +60,8 @@ export function useCreateQuoteMutation() {
         theme: payload.theme,
         alignment: payload.alignment,
         backgroundImage: payload.backgroundImage ?? null,
+        showQuoteMarks: payload.showQuoteMarks,
+        authorCasing: payload.authorCasing,
         draftId: payload.draftId ?? payload.id,
       });
       return data.quote;

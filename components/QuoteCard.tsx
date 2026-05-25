@@ -4,6 +4,10 @@ import { Heart } from "lucide-react";
 import ExportButton from "@/components/ExportButton";
 import { useToggleLikeMutation } from "@/lib/hooks/use-quotes";
 import type { Quote } from "@/types/quote";
+import {
+  formatAuthorAttribution,
+  getAuthorClassName,
+} from "@/utils/format-author";
 import { cn } from "@/utils/cn";
 
 interface QuoteCardProps {
@@ -21,6 +25,7 @@ export default function QuoteCard({
 }: QuoteCardProps) {
   const toggleLike = useToggleLikeMutation();
   const isLiked = quote.likedByMe ?? false;
+  const authorLine = formatAuthorAttribution(quote.author, quote.authorCasing);
 
   const handleLike = async () => {
     try {
@@ -51,7 +56,9 @@ export default function QuoteCard({
           !featured && !compact && "text-2xl md:text-3xl"
         )}
       >
-        &ldquo;{quote.text}&rdquo;
+        {quote.showQuoteMarks && <span className="opacity-40">&ldquo;</span>}
+        {quote.text}
+        {quote.showQuoteMarks && <span className="opacity-40">&rdquo;</span>}
       </blockquote>
 
       <footer
@@ -60,9 +67,16 @@ export default function QuoteCard({
           featured ? "mt-6 pt-6 border-t border-verse" : "mt-8"
         )}
       >
-        <p className="font-sans text-xs text-verse-accent tracking-[0.2em] uppercase break-words">
-          — {quote.author}
-        </p>
+        {authorLine && (
+          <p
+            className={cn(
+              "font-sans text-xs text-verse-accent break-words",
+              getAuthorClassName(quote.authorCasing)
+            )}
+          >
+            {authorLine}
+          </p>
+        )}
 
         <div className="flex items-center gap-2 shrink-0">
           <button
@@ -88,6 +102,8 @@ export default function QuoteCard({
               theme: quote.theme,
               alignment: quote.alignment,
               backgroundImage: quote.backgroundImage,
+              showQuoteMarks: quote.showQuoteMarks,
+              authorCasing: quote.authorCasing,
             }}
           />
         </div>

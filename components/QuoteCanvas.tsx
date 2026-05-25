@@ -2,7 +2,11 @@
 
 import { forwardRef } from "react";
 import { THEME_STYLES } from "@/lib/themes";
-import type { QuoteAlignment, QuoteTheme } from "@/types/quote";
+import type { AuthorCasing, QuoteAlignment, QuoteTheme } from "@/types/quote";
+import {
+  formatAuthorAttribution,
+  getAuthorClassName,
+} from "@/utils/format-author";
 import { cn } from "@/utils/cn";
 
 export interface QuoteCanvasProps {
@@ -11,6 +15,8 @@ export interface QuoteCanvasProps {
   theme: QuoteTheme;
   alignment?: QuoteAlignment;
   backgroundImage?: string;
+  showQuoteMarks?: boolean;
+  authorCasing?: AuthorCasing;
   className?: string;
   exportMode?: boolean;
 }
@@ -29,6 +35,8 @@ const QuoteCanvas = forwardRef<HTMLDivElement, QuoteCanvasProps>(
       theme,
       alignment = "center",
       backgroundImage,
+      showQuoteMarks = true,
+      authorCasing = "as-typed",
       className,
       exportMode = false,
     },
@@ -36,7 +44,7 @@ const QuoteCanvas = forwardRef<HTMLDivElement, QuoteCanvasProps>(
   ) {
     const styles = THEME_STYLES[theme];
     const displayText = text.trim() || "Your words belong here.";
-    const displayAuthor = author.trim() ? `— ${author.trim()}` : "";
+    const displayAuthor = formatAuthorAttribution(author, authorCasing);
 
     return (
       <div
@@ -84,15 +92,20 @@ const QuoteCanvas = forwardRef<HTMLDivElement, QuoteCanvasProps>(
             )}
             style={{ color: styles.text }}
           >
-            <span className="opacity-40 mr-1">&ldquo;</span>
+            {showQuoteMarks && (
+              <span className="opacity-40 mr-1">&ldquo;</span>
+            )}
             {displayText}
-            <span className="opacity-40 ml-1">&rdquo;</span>
+            {showQuoteMarks && (
+              <span className="opacity-40 ml-1">&rdquo;</span>
+            )}
           </blockquote>
 
           {displayAuthor && (
             <p
               className={cn(
-                "font-sans tracking-[0.2em] uppercase",
+                "font-sans",
+                getAuthorClassName(authorCasing),
                 exportMode ? "text-2xl" : "text-xs md:text-sm"
               )}
               style={{ color: styles.accent }}

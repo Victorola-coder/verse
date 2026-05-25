@@ -1,8 +1,5 @@
 import type { QuoteCanvasProps } from "@/components/QuoteCanvas";
-import {
-  formatAuthorAttribution,
-  formatAuthorName,
-} from "@/utils/format-author";
+import { formatAuthorName } from "@/utils/format-author";
 
 export function buildShareCaption(props: QuoteCanvasProps): string {
   const marks = props.showQuoteMarks ?? true;

@@ -3,10 +3,8 @@
 import { useCallback, useRef, useState } from "react";
 import { Download, Share2 } from "lucide-react";
 import QuoteCanvas, { type QuoteCanvasProps } from "@/components/QuoteCanvas";
-import {
-  exportAndDownloadQuote,
-  exportAndShareQuote,
-} from "@/utils/export-image";
+import SocialShareMenu from "@/components/SocialShareMenu";
+import { exportAndDownloadQuote } from "@/utils/export-image";
 import { cn } from "@/utils/cn";
 
 interface ExportButtonProps {
@@ -24,51 +22,39 @@ export default function ExportButton({
 }: ExportButtonProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
 
-  const runExport = useCallback(
-    async (mode: "share" | "download") => {
-      if (!canvasRef.current || isExporting) {
-        return;
-      }
+  const openShare = useCallback(() => {
+    if (!canvasProps.text.trim()) {
+      setStatus("Add quote text first");
+      setTimeout(() => setStatus(null), 2000);
+      return;
+    }
+    setShareOpen(true);
+  }, [canvasProps.text]);
 
-      if (!canvasProps.text.trim() && mode === "share") {
-        setStatus("Add quote text first");
-        setTimeout(() => setStatus(null), 2000);
-        return;
-      }
+  const handleDownload = useCallback(async () => {
+    if (!canvasRef.current || isExporting) {
+      return;
+    }
 
-      setIsExporting(true);
-      setStatus(null);
+    setIsExporting(true);
+    setStatus(null);
 
-      try {
-        if (mode === "download") {
-          await exportAndDownloadQuote(canvasRef.current, {
-            filename: `verse-${Date.now()}.png`,
-          });
-          setStatus("Saved");
-        } else {
-          const result = await exportAndShareQuote(canvasRef.current, {
-            filename: `verse-${Date.now()}.png`,
-          });
-          if (result === "shared") {
-            setStatus("Shared");
-          } else if (result === "cancelled") {
-            setStatus(null);
-          } else {
-            setStatus("Saved");
-          }
-        }
-        setTimeout(() => setStatus(null), 2000);
-      } catch {
-        setStatus("Failed");
-        setTimeout(() => setStatus(null), 2500);
-      } finally {
-        setIsExporting(false);
-      }
-    },
-    [canvasProps.text, isExporting]
-  );
+    try {
+      await exportAndDownloadQuote(canvasRef.current, {
+        filename: `verse-${Date.now()}.png`,
+      });
+      setStatus("Saved");
+      setTimeout(() => setStatus(null), 2000);
+    } catch {
+      setStatus("Failed");
+      setTimeout(() => setStatus(null), 2500);
+    } finally {
+      setIsExporting(false);
+    }
+  }, [isExporting]);
 
   const exportCanvas = (
     <div
@@ -85,16 +71,25 @@ export default function ExportButton({
     </div>
   );
 
+  const shareMenu = (
+    <SocialShareMenu
+      canvasProps={canvasProps}
+      isOpen={shareOpen}
+      onClose={() => setShareOpen(false)}
+    />
+  );
+
   if (variant === "both") {
     return (
       <>
         {exportCanvas}
+        {shareMenu}
         <div className={cn("flex items-center gap-2", className)}>
           <button
             type="button"
-            onClick={() => runExport("share")}
+            onClick={openShare}
             disabled={isExporting}
-            aria-label="Share quote"
+            aria-label="Share to socials"
             className={cn(
               "p-2.5 rounded-full verse-border text-verse-muted",
               "transition-all duration-300 ease-verse",
@@ -102,15 +97,11 @@ export default function ExportButton({
               "disabled:opacity-40 disabled:pointer-events-none"
             )}
           >
-            {isExporting ? (
-              <span className="block h-4 w-4 border border-verse-accent/40 border-t-verse-accent rounded-full animate-spin" />
-            ) : (
-              <Share2 className="h-4 w-4" />
-            )}
+            <Share2 className="h-4 w-4" />
           </button>
           <button
             type="button"
-            onClick={() => runExport("download")}
+            onClick={handleDownload}
             disabled={isExporting}
             aria-label="Download quote"
             className={cn(
@@ -131,11 +122,12 @@ export default function ExportButton({
     return (
       <>
         {exportCanvas}
+        {shareMenu}
         <button
           type="button"
-          onClick={() => runExport("share")}
+          onClick={openShare}
           disabled={isExporting}
-          aria-label="Share quote"
+          aria-label="Share to socials"
           className={cn(
             "p-2.5 rounded-full verse-border text-verse-muted",
             "transition-all duration-300 ease-verse",
@@ -144,11 +136,7 @@ export default function ExportButton({
             className
           )}
         >
-          {isExporting ? (
-            <span className="block h-4 w-4 border border-verse-accent/40 border-t-verse-accent rounded-full animate-spin" />
-          ) : (
-            <Share2 className="h-4 w-4" />
-          )}
+          <Share2 className="h-4 w-4" />
         </button>
       </>
     );
@@ -157,10 +145,11 @@ export default function ExportButton({
   return (
     <>
       {exportCanvas}
+      {shareMenu}
       <div className={cn("flex flex-col sm:flex-row gap-2", className)}>
         <button
           type="button"
-          onClick={() => runExport("share")}
+          onClick={openShare}
           disabled={isExporting}
           className={cn(
             "inline-flex flex-1 items-center justify-center gap-2 font-sans text-sm",
@@ -171,11 +160,11 @@ export default function ExportButton({
           )}
         >
           <Share2 className="h-4 w-4" />
-          {status === "Shared" ? "Shared" : "Share"}
+          Share to socials
         </button>
         <button
           type="button"
-          onClick={() => runExport("download")}
+          onClick={handleDownload}
           disabled={isExporting}
           className={cn(
             "inline-flex flex-1 items-center justify-center gap-2 font-sans text-sm",
@@ -190,7 +179,7 @@ export default function ExportButton({
           ) : (
             <Download className="h-4 w-4" />
           )}
-          {status === "Saved" ? "Saved" : "Download"}
+          {status ?? "Download"}
         </button>
       </div>
     </>
