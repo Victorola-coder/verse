@@ -6,6 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "Verse",
     description: "Create, share, and export beautiful quotes.",
     start_url: "/",
+    scope: "/",
     display: "standalone",
     background_color: "#0E0E0E",
     theme_color: "#0E0E0E",
@@ -23,6 +24,22 @@ export default function manifest(): MetadataRoute.Manifest {
         sizes: "180x180",
         type: "image/png",
         purpose: "maskable",
+      },
+    ],
+    shortcuts: [
+      {
+        name: "Create a quote",
+        short_name: "Create",
+        description: "Open the editor and craft a new quote",
+        url: "/?create=1",
+        icons: [{ src: "/icon.svg", sizes: "any", type: "image/svg+xml" }],
+      },
+      {
+        name: "Your saved quotes",
+        short_name: "Saved",
+        description: "Open your bookmarked quotes",
+        url: "/saved",
+        icons: [{ src: "/icon.svg", sizes: "any", type: "image/svg+xml" }],
       },
     ],
   };

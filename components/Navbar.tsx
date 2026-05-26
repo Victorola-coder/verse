@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import InstallPrompt from "@/components/InstallPrompt";
 import { useVerseStore } from "@/lib/store/verse";
 import { cn } from "@/utils/cn";
 
@@ -36,6 +37,7 @@ export default function Navbar() {
           >
             Saved
           </Link>
+          <InstallPrompt />
           <button
             type="button"
             onClick={() => openCreate()}
