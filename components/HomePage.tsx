@@ -11,13 +11,12 @@ export default function HomePage() {
     <main>
       <HeroSection />
       <FeaturedQuotes />
-      <Categories />
       <section
         id="feed"
         className="px-4 sm:px-6 py-16 sm:py-20 md:py-28 scroll-mt-20 sm:scroll-mt-24"
       >
         <div className="max-w-6xl mx-auto">
-          <header className="mb-10 md:mb-12 text-center">
+          <header className="mb-8 md:mb-10 text-center">
             <p className="font-sans text-xs text-verse-accent tracking-[0.3em] uppercase mb-4">
               Discover
             </p>
@@ -25,6 +24,7 @@ export default function HomePage() {
               Quote Feed
             </h2>
           </header>
+          <Categories className="mb-6 md:mb-8" />
           <FeedControls />
           <QuoteFeed />
         </div>

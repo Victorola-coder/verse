@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Shuffle } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useVerseStore } from "@/lib/store/verse";
 import {
   useDailyQuoteQuery,
@@ -17,12 +16,14 @@ const FALLBACK_HERO = {
   authorCasing: "as-typed" as const,
 };
 
+const ROTATE_INTERVAL_MS = 9000;
+
 export default function HeroSection() {
   const openCreate = useVerseStore((s) => s.openCreate);
   const { data: daily } = useDailyQuoteQuery();
   const { data: featured = [] } = useFeaturedQuotesQuery();
   const { data: allQuotes = [] } = useQuotesQuery("all");
-  const [shuffleKey, setShuffleKey] = useState(0);
+  const [rotateKey, setRotateKey] = useState(0);
 
   const pool = useMemo(() => {
     if (featured.length > 0) {
@@ -31,8 +32,60 @@ export default function HeroSection() {
     return allQuotes;
   }, [featured, allQuotes]);
 
+  // Auto-rotate the hero quote every ~9s, paused when tab is hidden
+  // or the user has prefers-reduced-motion enabled.
+  useEffect(() => {
+    if (pool.length <= 1) {
+      return;
+    }
+    if (typeof window === "undefined") {
+      return;
+    }
+    const reduced = window.matchMedia?.(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    if (reduced) {
+      return;
+    }
+
+    let timer: number | null = null;
+
+    const tick = () => {
+      if (document.visibilityState === "visible") {
+        setRotateKey((k) => k + 1);
+      }
+    };
+
+    const start = () => {
+      stop();
+      timer = window.setInterval(tick, ROTATE_INTERVAL_MS);
+    };
+    const stop = () => {
+      if (timer !== null) {
+        window.clearInterval(timer);
+        timer = null;
+      }
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") {
+        start();
+      } else {
+        stop();
+      }
+    };
+
+    start();
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      stop();
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [pool.length]);
+
   const hero = useMemo(() => {
-    if (shuffleKey === 0 && daily?.quote) {
+    if (rotateKey === 0 && daily?.quote) {
       return daily.quote;
     }
     if (pool.length === 0) {
@@ -40,13 +93,13 @@ export default function HeroSection() {
     }
     const idx = Math.floor(Math.random() * pool.length);
     return pool[idx];
-  }, [pool, shuffleKey, daily]);
+  }, [pool, rotateKey, daily]);
 
   const heroAuthor = formatAuthorAttribution(
     hero.author,
     hero.authorCasing
   );
-  const showDailyBadge = shuffleKey === 0 && !!daily?.quote;
+  const showDailyBadge = rotateKey === 0 && !!daily?.quote;
 
   return (
     <section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden px-4 sm:px-6 pt-20 pb-12">
@@ -82,7 +135,10 @@ export default function HeroSection() {
         </blockquote>
 
         {heroAuthor && (
-          <p className="mt-10 font-sans text-sm text-verse-accent tracking-[0.25em] uppercase">
+          <p
+            key={`${hero.text}-author`}
+            className="mt-10 font-sans text-sm text-verse-accent tracking-[0.25em] uppercase animate-[fadeUp_0.6s_ease-out_forwards]"
+          >
             — {heroAuthor}
           </p>
         )}
@@ -111,20 +167,6 @@ export default function HeroSection() {
           >
             Explore
           </a>
-          {pool.length > 1 && (
-            <button
-              type="button"
-              onClick={() => setShuffleKey((k) => k + 1)}
-              aria-label="Show another quote"
-              className={cn(
-                "p-3.5 rounded-full verse-border text-verse-muted",
-                "transition-all duration-300 ease-verse",
-                "hover:border-verse-accent/40 hover:text-verse-accent hover:-translate-y-0.5"
-              )}
-            >
-              <Shuffle className="h-4 w-4" />
-            </button>
-          )}
         </div>
       </div>
     </section>
