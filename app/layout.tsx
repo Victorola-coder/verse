@@ -2,6 +2,7 @@ import "./global.css";
 import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next"
 import { Cormorant_Garamond, Inter } from "next/font/google";
+import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
@@ -70,13 +71,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <>
     <html lang="en" className={`${cormorant.variable} ${inter.variable}`}>
       <body className="font-sans antialiased bg-verse-bg text-verse-text">
         {children}
+        <ServiceWorkerRegistration />
+        <Analytics />
       </body>
     </html>
-        <Analytics />
-    </>
   );
 }

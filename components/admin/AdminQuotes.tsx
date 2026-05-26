@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
+  ChevronLeft,
+  ChevronRight,
   ExternalLink,
   Heart,
   Save,
@@ -29,6 +31,14 @@ const THEMES: QuoteTheme[] = ["dark", "beige", "cinematic", "minimal"];
 const ALIGNMENTS: QuoteAlignment[] = ["left", "center", "right"];
 const CASINGS = Object.keys(AUTHOR_CASING_LABELS) as AuthorCasing[];
 
+interface PaginatedQuotesResponse {
+  quotes: Quote[];
+  total: number;
+  page: number;
+  pageSize: number;
+  pageCount: number;
+}
+
 export default function AdminQuotes() {
   const [quotes, setQuotes] = useState<EditableQuote[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,27 +47,41 @@ export default function AdminQuotes() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [pageCount, setPageCount] = useState(1);
 
   useEffect(() => {
     const handle = setTimeout(() => setDebouncedSearch(search), 250);
     return () => clearTimeout(handle);
   }, [search]);
 
+  // Reset to page 1 whenever the search query changes
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch]);
+
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
       setIsLoading(true);
       try {
-        const url = debouncedSearch
-          ? `/api/admin/quotes?q=${encodeURIComponent(debouncedSearch)}`
-          : "/api/admin/quotes";
-        const res = await fetch(url, { cache: "no-store" });
+        const params = new URLSearchParams();
+        if (debouncedSearch) {
+          params.set("q", debouncedSearch);
+        }
+        params.set("page", String(page));
+        const res = await fetch(`/api/admin/quotes?${params.toString()}`, {
+          cache: "no-store",
+        });
         if (!res.ok) {
           throw new Error("Failed to fetch");
         }
-        const data = (await res.json()) as { quotes: Quote[] };
+        const data = (await res.json()) as PaginatedQuotesResponse;
         if (!cancelled) {
           setQuotes(data.quotes);
+          setTotal(data.total);
+          setPageCount(data.pageCount);
         }
       } catch {
         if (!cancelled) {
@@ -73,12 +97,12 @@ export default function AdminQuotes() {
     return () => {
       cancelled = true;
     };
-  }, [debouncedSearch]);
+  }, [debouncedSearch, page]);
 
   const summary = useMemo(() => {
     const featured = quotes.filter((q) => q.featured).length;
-    return { total: quotes.length, featured };
-  }, [quotes]);
+    return { total, featured };
+  }, [quotes, total]);
 
   function updateLocal(id: string, patch: Partial<Quote>) {
     setQuotes((prev) =>
@@ -158,7 +182,14 @@ export default function AdminQuotes() {
       if (!res.ok) {
         throw new Error("Failed");
       }
-      setQuotes((prev) => prev.filter((q) => q.id !== id));
+      setQuotes((prev) => {
+        const next = prev.filter((q) => q.id !== id);
+        if (next.length === 0 && page > 1) {
+          setPage(page - 1);
+        }
+        return next;
+      });
+      setTotal((t) => Math.max(0, t - 1));
       toast.success("Quote deleted");
     } catch {
       toast.error("Could not delete quote");
@@ -188,7 +219,9 @@ export default function AdminQuotes() {
         <p className="font-sans text-xs text-verse-muted">
           {isLoading
             ? "Loading…"
-            : `${summary.total} quotes · ${summary.featured} featured`}
+            : summary.total === 0
+              ? "No quotes"
+              : `${summary.total} ${summary.total === 1 ? "quote" : "quotes"} · page ${page} of ${pageCount}`}
         </p>
       </div>
 
@@ -427,6 +460,72 @@ export default function AdminQuotes() {
             );
           })}
         </ul>
+      )}
+
+      {!isLoading && pageCount > 1 && (
+        <nav
+          aria-label="Quotes pagination"
+          className="flex items-center justify-center gap-2 pt-4"
+        >
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+            aria-label="Previous page"
+            className={cn(
+              "p-2 rounded-full verse-border text-verse-muted",
+              "transition-colors hover:text-verse-text",
+              "disabled:opacity-30 disabled:pointer-events-none"
+            )}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+
+          {Array.from({ length: pageCount }, (_, i) => i + 1)
+            .filter(
+              (p) =>
+                p === 1 ||
+                p === pageCount ||
+                (p >= page - 1 && p <= page + 1)
+            )
+            .map((p, idx, arr) => (
+              <span key={p} className="flex items-center gap-2">
+                {idx > 0 && arr[idx - 1] !== p - 1 && (
+                  <span className="text-verse-muted/50 font-sans text-xs">
+                    …
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setPage(p)}
+                  aria-label={`Go to page ${p}`}
+                  aria-current={p === page ? "page" : undefined}
+                  className={cn(
+                    "min-w-[2rem] px-2 py-1 rounded-full font-sans text-xs transition-colors",
+                    p === page
+                      ? "bg-verse-accent/20 text-verse-accent border border-verse-accent/30"
+                      : "verse-border text-verse-muted hover:text-verse-text"
+                  )}
+                >
+                  {p}
+                </button>
+              </span>
+            ))}
+
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+            disabled={page === pageCount}
+            aria-label="Next page"
+            className={cn(
+              "p-2 rounded-full verse-border text-verse-muted",
+              "transition-colors hover:text-verse-text",
+              "disabled:opacity-30 disabled:pointer-events-none"
+            )}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </nav>
       )}
     </div>
   );

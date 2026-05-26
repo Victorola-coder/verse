@@ -123,11 +123,18 @@ export async function getAdminStats(): Promise<AdminStats> {
   };
 }
 
+export const ADMIN_QUOTES_PAGE_SIZE = 10;
+
 export async function getAllQuotesForAdmin(options: {
   search?: string;
   featured?: boolean;
+  page?: number;
+  pageSize?: number;
 }) {
   const { search, featured } = options;
+  const pageSize = Math.max(1, options.pageSize ?? ADMIN_QUOTES_PAGE_SIZE);
+  const page = Math.max(1, options.page ?? 1);
+
   const where: {
     featured?: boolean;
     OR?: Array<{
@@ -146,11 +153,23 @@ export async function getAllQuotesForAdmin(options: {
     ];
   }
 
-  const rows = await prisma.quote.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-  });
-  return rows.map((r) => serializeQuote(r));
+  const [rows, total] = await Promise.all([
+    prisma.quote.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.quote.count({ where }),
+  ]);
+
+  return {
+    quotes: rows.map((r) => serializeQuote(r)),
+    total,
+    page,
+    pageSize,
+    pageCount: Math.max(1, Math.ceil(total / pageSize)),
+  };
 }
 
 export async function updateQuoteAsAdmin(

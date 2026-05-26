@@ -12,9 +12,12 @@ export async function GET(req: NextRequest) {
         : featuredParam === "false"
           ? false
           : undefined;
+    const pageRaw = Number(searchParams.get("page") ?? 1);
+    const page =
+      Number.isFinite(pageRaw) && pageRaw > 0 ? Math.floor(pageRaw) : 1;
 
-    const quotes = await getAllQuotesForAdmin({ search, featured });
-    return NextResponse.json({ quotes }, { status: 200 });
+    const result = await getAllQuotesForAdmin({ search, featured, page });
+    return NextResponse.json(result, { status: 200 });
   } catch (error) {
     console.error("GET /api/admin/quotes error:", error);
     return NextResponse.json(
