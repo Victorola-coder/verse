@@ -51,34 +51,30 @@ export default async function QuotePage({ params }: PageProps) {
   }
 
   return (
-    <Providers>
-      <Navbar />
-      <main className="min-h-[calc(100dvh-80px)] pt-24 pb-20 px-4 sm:px-6">
-        <div className="max-w-3xl mx-auto">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 font-sans text-xs text-verse-muted uppercase tracking-widest mb-8 hover:text-verse-accent transition-colors"
-          >
-            <ArrowLeft className="h-3 w-3" />
-            Back to feed
-          </Link>
+    <main className="min-h-[calc(100dvh-80px)] pt-24 pb-20 px-4 sm:px-6">
+      <div className="max-w-3xl mx-auto">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 font-sans text-xs text-verse-muted uppercase tracking-widest mb-8 hover:text-verse-accent transition-colors"
+        >
+          <ArrowLeft className="h-3 w-3" />
+          Back to feed
+        </Link>
 
-          <div className="rounded-2xl overflow-hidden verse-border">
-            <QuoteCanvas
-              text={quote.text}
-              author={quote.author}
-              theme={quote.theme}
-              alignment={quote.alignment}
-              backgroundImage={quote.backgroundImage}
-              showQuoteMarks={quote.showQuoteMarks}
-              authorCasing={quote.authorCasing}
-            />
-          </div>
-
-          <QuoteActions quote={quote} />
+        <div className="rounded-2xl overflow-hidden verse-border">
+          <QuoteCanvas
+            text={quote.text}
+            author={quote.author}
+            theme={quote.theme}
+            alignment={quote.alignment}
+            backgroundImage={quote.backgroundImage}
+            showQuoteMarks={quote.showQuoteMarks}
+            authorCasing={quote.authorCasing}
+          />
         </div>
-      </main>
-      <Footer />
-    </Providers>
+
+        <QuoteActions quote={quote} />
+      </div>
+    </main>
   );
 }
