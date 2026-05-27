@@ -4,6 +4,11 @@ import { useEffect } from "react";
 
 export default function ServiceWorkerRegistration() {
   useEffect(() => {
+    // Serwist disables itself in dev, so no /sw.js is built — skip
+    // registration to avoid a noisy 404 in the console on every page.
+    if (process.env.NODE_ENV !== "production") {
+      return;
+    }
     if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
       return;
     }

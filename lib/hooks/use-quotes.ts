@@ -109,6 +109,33 @@ export function useBookmarkedQuotesQuery() {
   });
 }
 
+// Apply a Quote[] updater across every cached list under ["quotes", …] while
+// safely skipping non-list caches (notably ["quotes", "daily"] which holds
+// { quote, dayIndex }). Also patches the daily cache when the toggled quote
+// happens to be the daily one so the hero stays in sync.
+function patchQuoteCaches(
+  queryClient: ReturnType<typeof useQueryClient>,
+  quoteId: string,
+  patch: (q: Quote) => Quote
+) {
+  queryClient.setQueriesData<Quote[]>({ queryKey: ["quotes"] }, (old) => {
+    if (!Array.isArray(old)) {
+      return old;
+    }
+    return old.map((q) => (q.id === quoteId ? patch(q) : q));
+  });
+
+  queryClient.setQueryData<DailyQuoteResponse>(
+    ["quotes", "daily"],
+    (old) => {
+      if (!old || !old.quote || old.quote.id !== quoteId) {
+        return old;
+      }
+      return { ...old, quote: patch(old.quote) };
+    }
+  );
+}
+
 export function useToggleBookmarkMutation() {
   const queryClient = useQueryClient();
 
@@ -121,18 +148,12 @@ export function useToggleBookmarkMutation() {
     },
     onMutate: async (quoteId) => {
       await queryClient.cancelQueries({ queryKey: ["quotes"] });
-      const previous = queryClient.getQueriesData<Quote[]>({
-        queryKey: ["quotes"],
-      });
+      const previous = queryClient.getQueriesData({ queryKey: ["quotes"] });
 
-      queryClient.setQueriesData<Quote[]>({ queryKey: ["quotes"] }, (old) => {
-        if (!old) {
-          return old;
-        }
-        return old.map((q) =>
-          q.id === quoteId ? { ...q, bookmarkedByMe: !q.bookmarkedByMe } : q
-        );
-      });
+      patchQuoteCaches(queryClient, quoteId, (q) => ({
+        ...q,
+        bookmarkedByMe: !q.bookmarkedByMe,
+      }));
 
       return { previous };
     },
@@ -159,26 +180,15 @@ export function useToggleLikeMutation() {
     },
     onMutate: async (quoteId) => {
       await queryClient.cancelQueries({ queryKey: ["quotes"] });
+      const previous = queryClient.getQueriesData({ queryKey: ["quotes"] });
 
-      const previous = queryClient.getQueriesData<Quote[]>({
-        queryKey: ["quotes"],
-      });
-
-      queryClient.setQueriesData<Quote[]>({ queryKey: ["quotes"] }, (old) => {
-        if (!old) {
-          return old;
-        }
-        return old.map((q) => {
-          if (q.id !== quoteId) {
-            return q;
-          }
-          const liked = !q.likedByMe;
-          return {
-            ...q,
-            likedByMe: liked,
-            likes: liked ? q.likes + 1 : Math.max(0, q.likes - 1),
-          };
-        });
+      patchQuoteCaches(queryClient, quoteId, (q) => {
+        const liked = !q.likedByMe;
+        return {
+          ...q,
+          likedByMe: liked,
+          likes: liked ? q.likes + 1 : Math.max(0, q.likes - 1),
+        };
       });
 
       return { previous };

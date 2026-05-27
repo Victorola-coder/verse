@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ChevronLeft,
@@ -99,10 +99,6 @@ export default function AdminQuotes() {
     };
   }, [debouncedSearch, page]);
 
-  const summary = useMemo(() => {
-    const featured = quotes.filter((q) => q.featured).length;
-    return { total, featured };
-  }, [quotes, total]);
 
   function updateLocal(id: string, patch: Partial<Quote>) {
     setQuotes((prev) =>
@@ -219,9 +215,9 @@ export default function AdminQuotes() {
         <p className="font-sans text-xs text-verse-muted">
           {isLoading
             ? "Loading…"
-            : summary.total === 0
+            : total === 0
               ? "No quotes"
-              : `${summary.total} ${summary.total === 1 ? "quote" : "quotes"} · page ${page} of ${pageCount}`}
+              : `${total} ${total === 1 ? "quote" : "quotes"} · page ${page} of ${pageCount}`}
         </p>
       </div>
 
