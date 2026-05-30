@@ -2,6 +2,7 @@ import { ImageResponse } from "next/og";
 import { getQuoteById } from "@/lib/services/quotes";
 import { THEME_STYLES } from "@/lib/themes";
 import { formatAuthorAttribution } from "@/utils/format-author";
+import { pickQuoteSize } from "@/utils/quote-typography";
 
 export const alt = "Quote on Verse";
 export const size = { width: 1200, height: 630 };
@@ -42,6 +43,7 @@ export default async function QuoteOgImage({ params }: Params) {
   const theme = THEME_STYLES[quote.theme];
   const author = formatAuthorAttribution(quote.author, quote.authorCasing);
   const isLightTheme = quote.theme === "beige";
+  const sized = pickQuoteSize(quote.text);
 
   return new ImageResponse(
     (
@@ -112,18 +114,17 @@ export default async function QuoteOgImage({ params }: Params) {
 
           <div
             style={{
-              fontSize: quote.text.length > 140 ? 52 : 64,
+              fontSize: sized.ogPx,
               lineHeight: 1.25,
               fontStyle: "italic",
               fontWeight: 300,
               letterSpacing: -1,
               color: theme.text,
               maxWidth: 1000,
+              overflowWrap: "anywhere",
             }}
           >
-            {quote.text.length > 220
-              ? `${quote.text.slice(0, 220)}…`
-              : quote.text}
+            {quote.text}
           </div>
 
           {author && (

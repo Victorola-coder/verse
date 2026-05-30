@@ -7,6 +7,7 @@ import {
   formatAuthorAttribution,
   getAuthorClassName,
 } from "@/utils/format-author";
+import { pickQuoteSize } from "@/utils/quote-typography";
 import { cn } from "@/utils/cn";
 
 export interface QuoteCanvasProps {
@@ -45,6 +46,7 @@ const QuoteCanvas = forwardRef<HTMLDivElement, QuoteCanvasProps>(
     const styles = THEME_STYLES[theme];
     const displayText = text.trim() || "Your words belong here.";
     const displayAuthor = formatAuthorAttribution(author, authorCasing);
+    const size = pickQuoteSize(displayText);
 
     return (
       <div
@@ -88,9 +90,15 @@ const QuoteCanvas = forwardRef<HTMLDivElement, QuoteCanvasProps>(
           <blockquote
             className={cn(
               "font-serif font-light leading-[1.35] tracking-tight",
-              exportMode ? "text-[72px]" : "text-3xl md:text-4xl lg:text-5xl"
+              // Wrap inside long unbreakable tokens (URLs, hashtags) so the
+              // text never bleeds past the canvas edge.
+              "[overflow-wrap:anywhere]",
+              !exportMode && size.previewClass
             )}
-            style={{ color: styles.text }}
+            style={{
+              color: styles.text,
+              ...(exportMode ? { fontSize: `${size.exportPx}px` } : null),
+            }}
           >
             {showQuoteMarks && (
               <span className="opacity-40 mr-1">&ldquo;</span>
