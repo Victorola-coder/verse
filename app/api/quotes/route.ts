@@ -8,6 +8,7 @@ import type { QuoteCategory } from "@/types/quote";
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionIdFromRequest } from "@/lib/session";
 import { createQuoteSchema } from "@/lib/validations/quote";
+import { checkForSpam } from "@/lib/validations/spam";
 import { isNextResponse, requireSessionId } from "@/lib/api-utils";
 
 export async function GET(req: NextRequest) {
@@ -64,6 +65,14 @@ export async function POST(req: NextRequest) {
     }
 
     const { draftId, ...data } = parsed.data;
+
+    const spam = checkForSpam(data.text, data.author);
+    if (!spam.ok) {
+      return NextResponse.json(
+        { error: spam.reason ?? "This quote can’t be published." },
+        { status: 422 }
+      );
+    }
 
     const quote = await createPublishedQuote({
       text: data.text.trim(),

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import QuoteCanvas from "@/components/QuoteCanvas";
 import ExportButton from "@/components/ExportButton";
+import { extractApiError } from "@/utils/extract-api-error";
 import { CATEGORY_LABELS } from "@/lib/quotes-data";
 import { THEME_LABELS } from "@/lib/themes";
 import {
@@ -205,8 +206,9 @@ export default function CreateQuoteModal() {
       setDraft(DEFAULT_QUOTE_DRAFT);
       setActiveDraftId(null);
       closeCreate();
-    } catch {
-      toast.error("Could not publish quote", { id: toastId });
+    } catch (error) {
+      const serverMessage = extractApiError(error);
+      toast.error(serverMessage ?? "Could not publish quote", { id: toastId });
     }
   }, [draft, createQuoteMutation, closeCreate, setActiveDraftId, fireConfetti]);
 
