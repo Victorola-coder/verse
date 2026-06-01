@@ -7,10 +7,15 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    /* Removes the blue/grey rectangle iOS draws over tapped elements. */
+    -webkit-tap-highlight-color: transparent;
   }
 
   html {
     scroll-behavior: smooth;
+    /* Stop iOS Safari from rescaling text when the device rotates. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   body {
@@ -19,11 +24,59 @@
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Prevents the page itself from bouncing when scrolled at the edges
+       — feels native, especially when installed as a PWA. */
+    overscroll-behavior-y: none;
+    /* Honour the safe-area inset on iPhones with a notch when the app is
+       running standalone. (Individual sections still use env() insets where
+       they need extra control.) */
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* iOS auto-zooms to ~110% whenever an input/textarea with font-size < 16px
+     receives focus. Force the minimum on all form fields so we stay put. */
+  input,
+  textarea,
+  select,
+  button {
+    font-size: max(16px, 1em);
+  }
+
+  /* Don't let users select random UI chrome on mobile (the iOS magnifier
+     popping up over a button is jarring). Form fields opt back in below. */
+  button,
+  a,
+  [role="button"] {
+    -webkit-user-select: none;
+    user-select: none;
+    /* Skip the legacy 300ms tap delay + slight click latency. */
+    touch-action: manipulation;
+  }
+
+  input,
+  textarea,
+  [contenteditable="true"] {
+    -webkit-user-select: text;
+    user-select: text;
   }
 
   ::selection {
     background-color: rgba(214, 185, 140, 0.35);
     color: #f5f1ea;
+  }
+
+  /* Honor reduced-motion: kill long animations + smooth scroll. */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
   }
 }
 
@@ -34,6 +87,28 @@
 
   .verse-grain {
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  }
+
+  /* Hide scrollbar but keep scroll behaviour — used for chip rows etc. */
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Convenience helpers for the safe-area insets on iPhones with a notch. */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .pl-safe {
+    padding-left: env(safe-area-inset-left);
+  }
+  .pr-safe {
+    padding-right: env(safe-area-inset-right);
   }
 }
 

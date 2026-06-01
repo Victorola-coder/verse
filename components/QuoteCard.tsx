@@ -56,11 +56,14 @@ export default function QuoteCard({
       className={cn(
         "group relative flex flex-col verse-border rounded-2xl bg-verse-card",
         "transition-all duration-500 ease-verse",
-        "hover:-translate-y-1 hover:border-white/15",
-        "hover:shadow-[0_24px_48px_-12px_rgba(214,185,140,0.08)]",
+        // Gate hover effects to real hover devices so a tapped card on mobile
+        // doesn't stay translated/highlighted after the finger lifts.
+        "hover:border-white/15",
+        "[@media(hover:hover)]:hover:-translate-y-1",
+        "[@media(hover:hover)]:hover:shadow-[0_24px_48px_-12px_rgba(214,185,140,0.08)]",
         featured && "h-full p-6 md:p-8",
         !featured && compact && "p-6 md:p-8",
-        !featured && !compact && "p-8 md:p-10",
+        !featured && !compact && "p-7 sm:p-8 md:p-10",
         className
       )}
     >
@@ -107,13 +110,14 @@ export default function QuoteCard({
             disabled={toggleLike.isPending}
             aria-label={isLiked ? "Unlike" : "Like"}
             className={cn(
-              "p-2.5 rounded-full verse-border transition-all duration-300 ease-verse",
-              "hover:-translate-y-0.5 hover:border-verse-accent/30",
+              "min-w-11 min-h-11 p-2.5 rounded-full verse-border transition-all duration-300 ease-verse",
+              "active:scale-95",
+              "[@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:border-verse-accent/30",
               "disabled:opacity-40",
               isLiked && "text-verse-accent border-verse-accent/30"
             )}
           >
-            <Heart className={cn("h-4 w-4", isLiked && "fill-current")} />
+            <Heart className={cn("h-4 w-4 mx-auto", isLiked && "fill-current")} />
           </button>
 
           <button
@@ -122,14 +126,15 @@ export default function QuoteCard({
             disabled={toggleBookmark.isPending}
             aria-label={isBookmarked ? "Remove bookmark" : "Bookmark"}
             className={cn(
-              "p-2.5 rounded-full verse-border transition-all duration-300 ease-verse",
-              "hover:-translate-y-0.5 hover:border-verse-accent/30",
+              "min-w-11 min-h-11 p-2.5 rounded-full verse-border transition-all duration-300 ease-verse",
+              "active:scale-95",
+              "[@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:border-verse-accent/30",
               "disabled:opacity-40",
               isBookmarked && "text-verse-accent border-verse-accent/30"
             )}
           >
             <Bookmark
-              className={cn("h-4 w-4", isBookmarked && "fill-current")}
+              className={cn("h-4 w-4 mx-auto", isBookmarked && "fill-current")}
             />
           </button>
 

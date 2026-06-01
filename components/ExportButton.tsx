@@ -106,9 +106,10 @@ export default function ExportButton({
             disabled={isExporting}
             aria-label="Share to socials"
             className={cn(
-              "p-2.5 rounded-full verse-border text-verse-muted",
+              "min-w-11 min-h-11 p-2.5 rounded-full verse-border text-verse-muted",
               "transition-all duration-300 ease-verse",
-              "hover:text-verse-accent hover:border-verse-accent/30 hover:-translate-y-0.5",
+              "active:scale-95",
+              "[@media(hover:hover)]:hover:text-verse-accent [@media(hover:hover)]:hover:border-verse-accent/30 [@media(hover:hover)]:hover:-translate-y-0.5",
               "disabled:opacity-40 disabled:pointer-events-none"
             )}
           >
@@ -120,9 +121,10 @@ export default function ExportButton({
             disabled={isExporting}
             aria-label="Download quote"
             className={cn(
-              "p-2.5 rounded-full verse-border text-verse-muted",
+              "min-w-11 min-h-11 p-2.5 rounded-full verse-border text-verse-muted",
               "transition-all duration-300 ease-verse",
-              "hover:text-verse-accent hover:border-verse-accent/30 hover:-translate-y-0.5",
+              "active:scale-95",
+              "[@media(hover:hover)]:hover:text-verse-accent [@media(hover:hover)]:hover:border-verse-accent/30 [@media(hover:hover)]:hover:-translate-y-0.5",
               "disabled:opacity-40 disabled:pointer-events-none"
             )}
           >
@@ -144,14 +146,15 @@ export default function ExportButton({
           disabled={isExporting}
           aria-label="Share to socials"
           className={cn(
-            "p-2.5 rounded-full verse-border text-verse-muted",
+            "min-w-11 min-h-11 p-2.5 rounded-full verse-border text-verse-muted",
             "transition-all duration-300 ease-verse",
-            "hover:text-verse-accent hover:border-verse-accent/30 hover:-translate-y-0.5",
+            "active:scale-95",
+            "[@media(hover:hover)]:hover:text-verse-accent [@media(hover:hover)]:hover:border-verse-accent/30 [@media(hover:hover)]:hover:-translate-y-0.5",
             "disabled:opacity-40 disabled:pointer-events-none",
             className
           )}
         >
-          <Share2 className="h-4 w-4" />
+          <Share2 className="h-4 w-4 mx-auto" />
         </button>
       </>
     );
