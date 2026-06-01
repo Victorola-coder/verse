@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next"
 import { Cormorant_Garamond, Inter } from "next/font/google";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
+import SplashOverlay from "@/components/SplashOverlay";
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
@@ -27,7 +28,8 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verse.app";
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://verse.victorola.dev";
 
 // Common Apple device portrait splash sizes. Each entry's `url` points at the
 // dynamic /apple-splash route which renders a centred V mark at that exact
@@ -135,6 +137,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${cormorant.variable} ${inter.variable}`}>
       <body className="font-sans antialiased bg-verse-bg text-verse-text">
+        <SplashOverlay />
         {children}
         <ServiceWorkerRegistration />
         <Analytics />
