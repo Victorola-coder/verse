@@ -51,15 +51,23 @@ export default function CreateQuoteModal() {
   const deleteDraftMutation = useDeleteDraftMutation();
   const createQuoteMutation = useCreateQuoteMutation();
 
+  // Tracks the draft id whose server snapshot we've already pulled into local
+  // state. Without this guard, every routine refetch of useDraftQuery (which
+  // fires after every autosave because the mutation invalidates the drafts
+  // prefix) would overwrite in-flight typing with the previously-saved value.
+  const hydratedDraftIdRef = useRef<string | null>(null);
+
   useEffect(() => {
-    if (loadedDraft) {
+    if (loadedDraft && hydratedDraftIdRef.current !== loadedDraft.id) {
       setDraft(draftToForm(loadedDraft));
+      hydratedDraftIdRef.current = loadedDraft.id;
     }
   }, [loadedDraft]);
 
   useEffect(() => {
     if (isCreateOpen && !activeDraftId) {
       setDraft(DEFAULT_QUOTE_DRAFT);
+      hydratedDraftIdRef.current = null;
     }
   }, [isCreateOpen, activeDraftId]);
 
@@ -105,6 +113,9 @@ export default function CreateQuoteModal() {
       try {
         const saved = await saveDraftMutation.mutateAsync(draft);
         lastSavedSignatureRef.current = draftSignature;
+        // Pre-mark the saved id so the refetch triggered by invalidateQueries
+        // doesn't overwrite the user's current (possibly newer) local state.
+        hydratedDraftIdRef.current = saved.id;
         if (!activeDraftId) {
           setActiveDraftId(saved.id);
           setDraft((prev) => ({ ...prev, id: saved.id }));
@@ -155,6 +166,7 @@ export default function CreateQuoteModal() {
     const toastId = toast.loading("Saving draft…");
     try {
       const saved = await saveDraftMutation.mutateAsync(draft);
+      hydratedDraftIdRef.current = saved.id;
       setDraft(draftToForm(saved));
       setActiveDraftId(saved.id);
       toast.success("Draft saved", { id: toastId });
@@ -215,6 +227,7 @@ export default function CreateQuoteModal() {
   const handleClose = useCallback(() => {
     setDraft(DEFAULT_QUOTE_DRAFT);
     setActiveDraftId(null);
+    hydratedDraftIdRef.current = null;
     closeCreate();
   }, [closeCreate, setActiveDraftId]);
 
