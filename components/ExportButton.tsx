@@ -113,7 +113,7 @@ export default function ExportButton({
               "disabled:opacity-40 disabled:pointer-events-none"
             )}
           >
-            <Share2 className="h-4 w-4" />
+            <Share2 className="h-4 w-4 mx-auto" />
           </button>
           <button
             type="button"
@@ -128,7 +128,7 @@ export default function ExportButton({
               "disabled:opacity-40 disabled:pointer-events-none"
             )}
           >
-            <Download className="h-4 w-4" />
+            <Download className="h-4 w-4 mx-auto" />
           </button>
         </div>
       </>
@@ -195,7 +195,7 @@ export default function ExportButton({
           {isExporting ? (
             <span className="h-4 w-4 border border-verse-bg/40 border-t-verse-bg rounded-full animate-spin" />
           ) : (
-            <Download className="h-4 w-4" />
+            <Download className="h-4 w-4 mx-auto" />
           )}
           {isExporting ? "Exporting…" : "Download"}
         </button>
