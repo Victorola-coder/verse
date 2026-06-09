@@ -592,7 +592,7 @@ export default function CreateQuoteModal() {
             <p className="font-sans text-[10px] sm:text-xs text-verse-muted tracking-widest uppercase mb-2 sm:mb-4 text-center">
               Live Preview
             </p>
-            <div className="max-w-[280px] sm:max-w-sm lg:max-w-none mx-auto">
+            <div className="max-w-[360px] sm:max-w-md lg:max-w-none mx-auto">
               <QuoteCanvas
                 text={draft.text}
                 author={draft.author}

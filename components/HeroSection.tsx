@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { ArrowDown, PenLine } from "lucide-react";
-import { useVerseStore } from "@/lib/store/verse";
 import {
+  useQuotesQuery,
   useDailyQuoteQuery,
   useFeaturedQuotesQuery,
-  useQuotesQuery,
 } from "@/lib/hooks/use-quotes";
-import { formatAuthorAttribution } from "@/utils/format-author";
 import { cn } from "@/utils/cn";
+import { ArrowDown, PenLine } from "lucide-react";
+import { useVerseStore } from "@/lib/store/verse";
+
+import { useEffect, useMemo, useState } from "react";
+import { formatAuthorAttribution } from "@/utils/format-author";
 
 const FALLBACK_HERO = {
   text: "Music no need permission to enter your spirit.",
@@ -144,14 +145,14 @@ export default function HeroSection() {
           </p>
         )}
 
-        <div className="mt-12 sm:mt-14 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+        <div className="mt-12 sm:mt-14 flex flex-row items-center justify-center gap-2.5 sm:gap-4">
           <button
             type="button"
             onClick={() => openCreate()}
             className={cn(
-              "group relative w-full sm:w-auto inline-flex items-center justify-center gap-2.5",
+              "group relative inline-flex items-center justify-center gap-2 sm:gap-2.5",
               "font-sans text-sm sm:text-base font-medium",
-              "pl-6 pr-7 py-4 rounded-full",
+              "px-5 sm:pl-6 sm:pr-7 py-3.5 sm:py-4 rounded-full",
               "bg-verse-accent text-verse-bg",
               "shadow-[0_10px_30px_-10px_rgba(214,185,140,0.55)]",
               "transition-all duration-300 ease-verse",
@@ -166,9 +167,9 @@ export default function HeroSection() {
           <a
             href="#feed"
             className={cn(
-              "group w-full sm:w-auto inline-flex items-center justify-center gap-2",
+              "group inline-flex items-center justify-center gap-2",
               "font-sans text-sm sm:text-base",
-              "px-6 py-4 rounded-full",
+              "px-5 sm:px-6 py-3.5 sm:py-4 rounded-full",
               "text-verse-text/90",
               "bg-white/[0.03] backdrop-blur-sm",
               "border border-white/10",
@@ -176,7 +177,7 @@ export default function HeroSection() {
               "[@media(hover:hover)]:hover:bg-white/[0.06] [@media(hover:hover)]:hover:border-white/20 [@media(hover:hover)]:hover:-translate-y-0.5"
             )}
           >
-            <span>Browse the feed</span>
+            <span>Browse</span>
             <ArrowDown className="h-4 w-4 transition-transform duration-300 group-hover:translate-y-0.5" />
           </a>
         </div>
