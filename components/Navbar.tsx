@@ -42,18 +42,18 @@ export default function Navbar() {
             Saved
           </Link>
           <InstallPrompt />
+          {/* Hidden on mobile — the bottom-nav center button replaces this. */}
           <button
             type="button"
             onClick={() => openCreate()}
             className={cn(
-              "font-sans text-xs sm:text-sm px-4 sm:px-5 py-2 min-h-11 rounded-full whitespace-nowrap",
+              "hidden md:inline-flex font-sans text-xs sm:text-sm px-4 sm:px-5 py-2 min-h-11 rounded-full whitespace-nowrap items-center",
               "bg-verse-accent text-verse-bg",
               "transition-all duration-300 ease-verse active:scale-95",
               "[@media(hover:hover)]:hover:opacity-90 [@media(hover:hover)]:hover:-translate-y-0.5"
             )}
           >
-            <span className="sm:hidden">Create</span>
-            <span className="hidden sm:inline">Create Quote</span>
+            Create Quote
           </button>
         </div>
       </nav>
