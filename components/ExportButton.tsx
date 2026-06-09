@@ -46,15 +46,24 @@ export default function ExportButton({
     const toastId = toast.loading("Generating image…");
 
     try {
-      // Wait a tick so the hidden canvas mounts before we capture it
-      await new Promise((r) => setTimeout(r, 50));
+      // Wait a couple frames so the hidden canvas mounts + paints before we
+      // capture it. 50ms wasn't enough on slower iPhones.
+      await new Promise((r) => setTimeout(r, 120));
       if (!canvasRef.current) {
         throw new Error("Canvas not ready");
       }
-      await exportAndDownloadQuote(canvasRef.current, {
+      const result = await exportAndDownloadQuote(canvasRef.current, {
         filename: `verse-${Date.now()}.png`,
       });
-      toast.success("Saved to your device", { id: toastId });
+      if (result === "cancelled") {
+        toast.dismiss(toastId);
+      } else if (result === "shared") {
+        toast.success("Use the share sheet to save the image", { id: toastId });
+      } else if (result === "opened") {
+        toast.success("Long-press the image to save it", { id: toastId });
+      } else {
+        toast.success("Saved to your device", { id: toastId });
+      }
     } catch {
       toast.error("Could not export image", { id: toastId });
     } finally {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { X } from "lucide-react";
+import { Save, Send, X } from "lucide-react";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import QuoteCanvas from "@/components/QuoteCanvas";
@@ -285,7 +285,16 @@ export default function CreateQuoteModal() {
           "animate-[slideUp_0.4s_ease-out_forwards]"
         )}
       >
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 bg-verse-card/95 backdrop-blur-md border-b border-verse shrink-0">
+        <div
+          className="flex items-center justify-between px-4 sm:px-6 pb-3 sm:pb-4 bg-verse-card/95 backdrop-blur-md border-b border-verse shrink-0"
+          style={{
+            // In iOS PWA standalone mode the status bar / notch overlaps the
+            // top of the viewport. Without this inset, the close button can
+            // sit under the notch and become impossible to tap.
+            paddingTop:
+              "calc(env(safe-area-inset-top, 0px) + 0.75rem)",
+          }}
+        >
           <h2
             id="create-quote-title"
             className="font-serif text-lg sm:text-2xl text-verse-text"
@@ -296,7 +305,7 @@ export default function CreateQuoteModal() {
             type="button"
             onClick={handleClose}
             aria-label="Close"
-            className="p-2 rounded-full verse-border text-verse-muted transition-colors duration-300 hover:text-verse-text"
+            className="p-2.5 rounded-full verse-border text-verse-muted transition-colors duration-300 hover:text-verse-text active:text-verse-accent"
           >
             <X className="h-5 w-5" />
           </button>
@@ -532,45 +541,50 @@ export default function CreateQuoteModal() {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-2">
-              <button
-                type="button"
-                onClick={handleSaveDraft}
-                disabled={isSaving}
-                className={cn(
-                  "flex-1 font-sans text-sm py-3 rounded-full verse-border text-verse-text",
-                  "transition-all duration-300 hover:border-verse-accent/40 hover:-translate-y-0.5",
-                  "disabled:opacity-40 disabled:pointer-events-none"
-                )}
-              >
-                Save Draft
-              </button>
+            <div className="flex items-center justify-between gap-2 pt-2">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleSaveDraft}
+                  disabled={isSaving}
+                  aria-label="Save draft"
+                  title="Save draft"
+                  className={cn(
+                    "p-3 rounded-full verse-border text-verse-muted",
+                    "transition-all duration-300 hover:border-verse-accent/40 hover:text-verse-text hover:-translate-y-0.5",
+                    "disabled:opacity-40 disabled:pointer-events-none"
+                  )}
+                >
+                  <Save className="h-4 w-4" />
+                </button>
+                <ExportButton
+                  variant="both"
+                  canvasProps={{
+                    text: draft.text,
+                    author: draft.author,
+                    theme: draft.theme,
+                    alignment: draft.alignment,
+                    backgroundImage: draft.backgroundImage,
+                    showQuoteMarks: draft.showQuoteMarks,
+                    authorCasing: draft.authorCasing,
+                  }}
+                />
+              </div>
               <button
                 type="button"
                 onClick={handlePublish}
                 disabled={!draft.text.trim() || isSaving}
+                aria-label="Publish quote"
                 className={cn(
-                  "flex-1 font-sans text-sm py-3 rounded-full",
+                  "inline-flex items-center gap-2 font-sans text-sm pl-5 pr-6 py-3 rounded-full",
                   "bg-verse-accent text-verse-bg",
                   "transition-all duration-300 hover:opacity-90 hover:-translate-y-0.5",
                   "disabled:opacity-40 disabled:pointer-events-none"
                 )}
               >
+                <Send className="h-4 w-4" />
                 Publish
               </button>
-              <ExportButton
-                variant="button"
-                label="Export Image"
-                canvasProps={{
-                  text: draft.text,
-                  author: draft.author,
-                  theme: draft.theme,
-                  alignment: draft.alignment,
-                  backgroundImage: draft.backgroundImage,
-                  showQuoteMarks: draft.showQuoteMarks,
-                  authorCasing: draft.authorCasing,
-                }}
-              />
             </div>
           </div>
 

@@ -8,7 +8,37 @@ export interface ExportImageOptions {
   filename?: string;
 }
 
-export type ShareResult = "shared" | "downloaded" | "cancelled";
+export type ShareResult = "shared" | "downloaded" | "cancelled" | "opened";
+
+function isIOS(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent || "";
+  const isIOSUA = /iPad|iPhone|iPod/.test(ua);
+  // iPadOS 13+ identifies as Mac
+  const isIPadOS =
+    ua.includes("Mac") && typeof document !== "undefined" && "ontouchend" in document;
+  return isIOSUA || isIPadOS;
+}
+
+function isStandalonePWA(): boolean {
+  if (typeof window === "undefined") return false;
+  return (
+    window.matchMedia?.("(display-mode: standalone)").matches ||
+    (window.navigator as Navigator & { standalone?: boolean }).standalone ===
+      true
+  );
+}
+
+function canShareFiles(file: File): boolean {
+  if (typeof navigator === "undefined" || !navigator.canShare) {
+    return false;
+  }
+  try {
+    return navigator.canShare({ files: [file] });
+  } catch {
+    return false;
+  }
+}
 
 async function waitForFonts(): Promise<void> {
   try {
@@ -65,8 +95,15 @@ export async function prepareExportElement(
   await waitForFonts();
   await waitForImages(element);
 
-  // Allow layout/paint after src swap
-  await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
+  // Two animation frames + a microtask tick — gives the browser a chance to
+  // both lay out and paint the cloned subtree before html-to-image rasterises.
+  // Without this, slower devices (older iPhones, low-end Android) sometimes
+  // capture a half-painted canvas that renders "stacked" or blank.
+  await new Promise((resolve) =>
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => resolve(undefined))
+    )
+  );
 
   return () => {
     restores.forEach((restore) => restore());
@@ -107,10 +144,23 @@ export function downloadBlob(blob: Blob, filename: string): void {
   const link = document.createElement("a");
   link.href = url;
   link.download = filename;
+  link.rel = "noopener";
+  link.target = "_blank";
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  // Defer revoke so the browser actually has time to start the download
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+
+// Open the blob in a new tab — fallback for iOS where neither <a download>
+// nor the share sheet are usable. The user can then long-press to save.
+export function openBlobInNewTab(blob: Blob): boolean {
+  if (typeof window === "undefined") return false;
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url, "_blank", "noopener,noreferrer");
+  setTimeout(() => URL.revokeObjectURL(url), 30_000);
+  return !!win;
 }
 
 export async function shareQuoteImage(
@@ -122,6 +172,10 @@ export async function shareQuoteImage(
   }
 
   const file = new File([blob], filename, { type: "image/png" });
+  if (!canShareFiles(file)) {
+    return "unsupported";
+  }
+
   const shareData: ShareData = {
     files: [file],
     title: "Verse",
@@ -139,13 +193,55 @@ export async function shareQuoteImage(
   }
 }
 
+// Best-effort "save to device" that picks the right mechanism per platform:
+//   - iOS (Safari or installed PWA): share sheet ("Save Image" / "Save to Files")
+//     because <a download> is unreliable / silent there.
+//   - Desktop & Android Chrome: <a download> link.
+//   - If everything fails: open in a new tab so the user can long-press save.
+export async function saveQuoteImage(
+  blob: Blob,
+  filename: string
+): Promise<ShareResult> {
+  const file = new File([blob], filename, { type: "image/png" });
+
+  if (isIOS() && canShareFiles(file)) {
+    try {
+      await navigator.share({ files: [file], title: "Verse quote" });
+      return "shared";
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return "cancelled";
+      }
+      // fall through to download / open
+    }
+  }
+
+  // In an installed PWA on iOS the link trick still won't write a file —
+  // skip straight to opening so the user can long-press save.
+  if (isIOS() && isStandalonePWA()) {
+    if (openBlobInNewTab(blob)) {
+      return "opened";
+    }
+  }
+
+  try {
+    downloadBlob(blob, filename);
+    return "downloaded";
+  } catch {
+    if (openBlobInNewTab(blob)) {
+      return "opened";
+    }
+    throw new Error("Could not save image");
+  }
+}
+
 export async function exportAndDownloadQuote(
   element: HTMLElement,
   options?: ExportImageOptions
-): Promise<void> {
+): Promise<ShareResult> {
   const filename = options?.filename ?? `verse-quote-${Date.now()}.png`;
   const blob = await generateQuoteImage(element);
-  downloadBlob(blob, filename);
+  return saveQuoteImage(blob, filename);
 }
 
 export async function exportAndShareQuote(

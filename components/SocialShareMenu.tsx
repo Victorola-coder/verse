@@ -15,8 +15,8 @@ import {
 import { toast } from "sonner";
 import QuoteCanvas, { type QuoteCanvasProps } from "@/components/QuoteCanvas";
 import {
-  downloadBlob,
   generateQuoteImage,
+  saveQuoteImage,
   shareQuoteImage,
 } from "@/utils/export-image";
 import {
@@ -113,10 +113,19 @@ export default function SocialShareMenu({
             toast.message("Hang on — image is still loading");
             return;
           }
-          downloadBlob(imageBlob, `verse-${Date.now()}.png`);
-          toast.success("Image saved", {
-            description: "Open Instagram or TikTok to post it",
-          });
+          const result = await saveQuoteImage(
+            imageBlob,
+            `verse-${Date.now()}.png`
+          );
+          if (result === "shared") {
+            toast.success("Saved via share sheet — open Instagram or TikTok");
+          } else if (result === "opened") {
+            toast.success("Long-press the image to save, then post in IG/TikTok");
+          } else if (result === "downloaded") {
+            toast.success("Image saved", {
+              description: "Open Instagram or TikTok to post it",
+            });
+          }
         } else if (link.action === "native") {
           if (!imageBlob) {
             toast.message("Hang on — image is still loading");
@@ -129,8 +138,13 @@ export default function SocialShareMenu({
           if (result === "shared") {
             toast.success("Shared");
           } else if (result === "unsupported") {
-            downloadBlob(imageBlob, `verse-${Date.now()}.png`);
-            toast.success("Downloaded — share image manually");
+            const fallback = await saveQuoteImage(
+              imageBlob,
+              `verse-${Date.now()}.png`
+            );
+            if (fallback !== "cancelled") {
+              toast.success("Downloaded — share image manually");
+            }
           }
         }
       } catch {
