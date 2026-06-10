@@ -104,6 +104,20 @@ export function useDeleteDraftMutation() {
   });
 }
 
+export function useDeleteAllDraftsMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      const { data } = await api.delete<{ deleted: number }>("/api/drafts");
+      return data.deleted;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.drafts() });
+    },
+  });
+}
+
 export async function uploadQuoteImage(file: File): Promise<string> {
   const formData = new FormData();
   formData.append("file", file);

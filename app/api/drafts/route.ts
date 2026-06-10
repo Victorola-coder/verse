@@ -1,6 +1,7 @@
 import {
   getDraftsForSession,
   createDraftForSession,
+  deleteAllDraftsForSession,
 } from "@/lib/services/quotes";
 import { serializeDraft } from "@/lib/serialize-draft";
 import { NextRequest, NextResponse } from "next/server";
@@ -24,6 +25,24 @@ export async function GET(req: NextRequest) {
     console.error("GET /api/drafts error:", error);
     return NextResponse.json(
       { error: "Failed to fetch drafts" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const sessionResult = requireSessionId(req);
+    if (isNextResponse(sessionResult)) {
+      return sessionResult;
+    }
+
+    const count = await deleteAllDraftsForSession(sessionResult);
+    return NextResponse.json({ deleted: count }, { status: 200 });
+  } catch (error) {
+    console.error("DELETE /api/drafts error:", error);
+    return NextResponse.json(
+      { error: "Failed to clear drafts" },
       { status: 500 }
     );
   }

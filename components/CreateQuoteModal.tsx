@@ -1,17 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Save, Send, X } from "lucide-react";
+import { Save, Send, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import QuoteCanvas from "@/components/QuoteCanvas";
 import ExportButton from "@/components/ExportButton";
+import ConfirmDialog from "@/components/ConfirmDialog";
 import { extractApiError } from "@/utils/extract-api-error";
 import { CATEGORY_LABELS } from "@/lib/quotes-data";
 import { THEME_LABELS } from "@/lib/themes";
 import {
   draftToForm,
   uploadQuoteImage,
+  useDeleteAllDraftsMutation,
   useDeleteDraftMutation,
   useDraftQuery,
   useDraftsQuery,
@@ -49,7 +51,23 @@ export default function CreateQuoteModal() {
   const { data: loadedDraft } = useDraftQuery(activeDraftId);
   const saveDraftMutation = useSaveDraftMutation();
   const deleteDraftMutation = useDeleteDraftMutation();
+  const deleteAllDraftsMutation = useDeleteAllDraftsMutation();
   const createQuoteMutation = useCreateQuoteMutation();
+  const [confirmClearAll, setConfirmClearAll] = useState(false);
+
+  const handleClearAllDrafts = useCallback(async () => {
+    try {
+      const deleted = await deleteAllDraftsMutation.mutateAsync();
+      setDraft(DEFAULT_QUOTE_DRAFT);
+      setActiveDraftId(null);
+      setConfirmClearAll(false);
+      toast.success(
+        `Cleared ${deleted} draft${deleted === 1 ? "" : "s"}`
+      );
+    } catch {
+      toast.error("Could not clear drafts");
+    }
+  }, [deleteAllDraftsMutation, setActiveDraftId]);
 
   // Tracks the draft id whose server snapshot we've already pulled into local
   // state. Without this guard, every routine refetch of useDraftQuery (which
@@ -313,9 +331,26 @@ export default function CreateQuoteModal() {
 
         {drafts.length > 0 && (
           <div className="px-4 sm:px-6 py-2 sm:py-3 border-b border-verse shrink-0">
-            <span className="font-sans text-[10px] text-verse-muted tracking-widest uppercase block mb-1.5">
-              Your drafts
-            </span>
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="font-sans text-[10px] text-verse-muted tracking-widest uppercase">
+                Your drafts · {drafts.length}
+              </span>
+              <button
+                type="button"
+                onClick={() => setConfirmClearAll(true)}
+                aria-label="Clear all drafts"
+                title="Clear all drafts"
+                className={cn(
+                  "p-1.5 rounded-full text-verse-muted",
+                  "transition-colors duration-300",
+                  "hover:text-red-400 hover:bg-red-500/10",
+                  "disabled:opacity-40 disabled:pointer-events-none"
+                )}
+                disabled={deleteAllDraftsMutation.isPending}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
             <div className="flex gap-2 overflow-x-auto -mx-1 px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {drafts.map((d) => (
                 <div key={d.id} className="flex items-center gap-1 shrink-0">
@@ -344,6 +379,18 @@ export default function CreateQuoteModal() {
             </div>
           </div>
         )}
+
+        <ConfirmDialog
+          open={confirmClearAll}
+          title="Clear all drafts?"
+          description={`This will permanently delete ${drafts.length} draft${drafts.length === 1 ? "" : "s"}. This can't be undone.`}
+          confirmLabel="Clear all"
+          cancelLabel="Keep them"
+          destructive
+          busy={deleteAllDraftsMutation.isPending}
+          onConfirm={handleClearAllDrafts}
+          onCancel={() => setConfirmClearAll(false)}
+        />
 
         <div className="flex-1 overflow-y-auto grid grid-cols-1 lg:grid-cols-2 gap-0">
           <div className="p-4 sm:p-6 space-y-6 border-b lg:border-b-0 lg:border-r border-verse">

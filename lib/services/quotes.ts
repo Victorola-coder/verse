@@ -387,6 +387,13 @@ export async function deleteDraftForSession(id: string, sessionId: string) {
   return true;
 }
 
+export async function deleteAllDraftsForSession(sessionId: string) {
+  const result = await prisma.quoteDraft.deleteMany({
+    where: { sessionId },
+  });
+  return result.count;
+}
+
 export async function deleteDraftAfterPublish(
   draftId: string | undefined,
   sessionId: string
