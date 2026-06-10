@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
+import ConfirmDialog from "@/components/ConfirmDialog";
 import type { Quote, QuoteAlignment, QuoteCategory, QuoteTheme } from "@/types/quote";
 import { CATEGORY_LABELS } from "@/lib/quotes-data";
 import { THEME_LABELS } from "@/lib/themes";
@@ -47,9 +48,14 @@ export default function AdminQuotes() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [pageCount, setPageCount] = useState(1);
+
+  const quoteToDelete = confirmDeleteId
+    ? quotes.find((q) => q.id === confirmDeleteId)
+    : null;
 
   useEffect(() => {
     const handle = setTimeout(() => setDebouncedSearch(search), 250);
@@ -163,13 +169,7 @@ export default function AdminQuotes() {
     }
   }
 
-  async function deleteQuote(id: string) {
-    const quote = quotes.find((q) => q.id === id);
-    if (!quote) return;
-    if (!window.confirm(`Delete this quote? This cannot be undone.\n\n“${quote.text.slice(0, 80)}…”`)) {
-      return;
-    }
-
+  async function performDelete(id: string) {
     setDeletingId(id);
     try {
       const res = await fetch(`/api/admin/quotes/${id}`, {
@@ -186,6 +186,7 @@ export default function AdminQuotes() {
         return next;
       });
       setTotal((t) => Math.max(0, t - 1));
+      setConfirmDeleteId(null);
       toast.success("Quote deleted");
     } catch {
       toast.error("Could not delete quote");
@@ -440,7 +441,7 @@ export default function AdminQuotes() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => deleteQuote(q.id)}
+                            onClick={() => setConfirmDeleteId(q.id)}
                             disabled={deletingId === q.id}
                             aria-label="Delete quote"
                             className="p-1.5 rounded-full font-sans text-xs verse-border text-verse-muted hover:text-red-400 hover:border-red-400/30 transition-colors disabled:opacity-40"
@@ -523,6 +524,24 @@ export default function AdminQuotes() {
           </button>
         </nav>
       )}
+
+      <ConfirmDialog
+        open={!!confirmDeleteId}
+        title="Delete this quote?"
+        description={
+          quoteToDelete
+            ? `“${quoteToDelete.text.slice(0, 120)}${quoteToDelete.text.length > 120 ? "…" : ""}” will be permanently removed. This can't be undone.`
+            : "This action can't be undone."
+        }
+        confirmLabel="Delete"
+        cancelLabel="Keep it"
+        destructive
+        busy={!!deletingId}
+        onConfirm={() => {
+          if (confirmDeleteId) performDelete(confirmDeleteId);
+        }}
+        onCancel={() => setConfirmDeleteId(null)}
+      />
     </div>
   );
 }
